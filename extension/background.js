@@ -1,4 +1,8 @@
-const { menus, pageAction, sessions, tabs } = browser;
+const { menus, pageAction, runtime, sessions, tabs } = browser;
+
+const NAME = 'Auto Reload Tab';
+
+const TST_ID = 'treestyletab@piro.sakura.ne.jp';
 
 const count = (n, str) => n === 1 ? `1 ${str}` : `${n} ${str}s`;
 
@@ -47,7 +51,7 @@ const hidePageAction = id => {
     // pageAction.hide apparently doesn't work in Nightly 58
     pageAction.setTitle({
         tabId: id,
-        title: 'Auto Reload Tab (off)'
+        title: `${NAME} (off)`
     });
     pageAction.setIcon({
         path: 'icon-disabled-96.png',
@@ -56,16 +60,24 @@ const hidePageAction = id => {
     pageAction.hide(id);
 };
 
+const registerTST = () =>
+    runtime.sendMessage(TST_ID, {
+        type: 'register-self',
+        name: NAME
+    }).catch(() => false);
+
 class AutoRefresh {
     constructor() {
         // Maps tab ids to { intervalId, duration, label }
         this.registeredTabs = new Map();
         // Maps menu entry ids to { duration, label }
         this.menuEntries = new Map();
+        this.tstRegistered = false;
     }
 
     async init() {
         await this.restoreTimers();
+        this.tstRegistered = await registerTST();
         this.makeMenus();
         this.listen();
     }
