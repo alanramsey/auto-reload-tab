@@ -114,6 +114,12 @@ class AutoRefresh {
         tabs.onRemoved.addListener(this.unregisterTab.bind(this));
         tabs.onUpdated.addListener(this.tabUpdated.bind(this));
         pageAction.onClicked.addListener(({id}) => this.unregisterTab(id));
+        runtime.onMessageExternal.addListener((message, sender) => {
+            if (sender.id === TST_ID &&
+                message.type === 'fake-contextMenu-click') {
+                this.menuClicked(message.info, message.tab);
+            }
+        });
     }
 
     menuClicked(info, tab) {
