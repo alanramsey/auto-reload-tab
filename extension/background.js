@@ -1,4 +1,4 @@
-const { menus, pageAction, tabs } = browser;
+const { menus, pageAction, sessions, tabs } = browser;
 
 const count = (n, str) => n === 1 ? `1 ${str}` : `${n} ${str}s`;
 
@@ -58,13 +58,14 @@ const hidePageAction = id => {
 
 class AutoRefresh {
     constructor() {
-        // Maps tab ids to { intervalId, label }
+        // Maps tab ids to { intervalId, duration, label }
         this.registeredTabs = new Map();
         // Maps menu entry ids to { duration, label }
         this.menuEntries = new Map();
     }
 
-    init() {
+    async init() {
+        await this.restoreTimers();
         this.makeMenus();
         this.listen();
     }
@@ -99,29 +100,57 @@ class AutoRefresh {
         const entry = this.menuEntries.get(menuItemId);
         if (entry) {
             const { duration, label } = this.menuEntries.get(menuItemId);
-            const intervalId = window.setInterval(() => {
-                tabs.reload(id);
-            }, duration);
-            this.registeredTabs.set(id, { intervalId, label });
-            showPageAction(id, label);
+            this.setRefreshInterval(id, duration, label);
         }
+    }
+
+    setRefreshInterval(tabId, duration, label) {
+        const intervalId = window.setInterval(() => {
+            tabs.reload(tabId);
+        }, duration);
+        this.setTab(tabId, intervalId, duration, label);
+        showPageAction(tabId, label);
     }
 
     tabUpdated(id) {
         // Page actions are reset when the page is navigated
-        const tabEntry = this.registeredTabs.get(id);
+        const tabEntry = this.getTab(id);
         if (tabEntry) {
             showPageAction(id, tabEntry.label);
         }
     }
 
     unregisterTab(id) {
-        const tabEntry = this.registeredTabs.get(id);
+        const tabEntry = this.getTab(id);
         if (tabEntry) {
             window.clearInterval(tabEntry.intervalId);
             hidePageAction(id);
-            this.registeredTabs.delete(id);
+            this.deleteTab(id);
         }
+    }
+
+    getTab(tabId) {
+        return this.registeredTabs.get(tabId);
+    }
+
+    setTab(tabId, intervalId, duration, label) {
+        sessions.setTabValue(tabId, 'refresh', { duration, label });
+        this.registeredTabs.set(tabId, { intervalId, duration, label });
+    }
+
+    deleteTab(tabId) {
+        sessions.removeTabValue(tabId, 'refresh').catch(() => {});
+        this.registeredTabs.delete(tabId);
+    }
+
+    async restoreTimers() {
+        await Promise.all((await tabs.query({})).map(async tab => {
+            const refresh = await sessions.getTabValue(tab.id, 'refresh');
+            if (refresh) {
+                const { duration, label } = refresh;
+                this.setRefreshInterval(tab.id, duration, label);
+            }
+        }));
     }
 }
 

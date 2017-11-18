@@ -17,6 +17,7 @@
   "manifest_version": 2,
   "permissions": [
     "menus",
-    "activeTab"
+    "activeTab",
+    "sessions"
   ]
 }
