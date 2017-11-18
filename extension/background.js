@@ -114,10 +114,17 @@ class AutoRefresh {
         tabs.onRemoved.addListener(this.unregisterTab.bind(this));
         tabs.onUpdated.addListener(this.tabUpdated.bind(this));
         pageAction.onClicked.addListener(({id}) => this.unregisterTab(id));
-        runtime.onMessageExternal.addListener((message, sender) => {
-            if (sender.id === TST_ID &&
-                message.type === 'fake-contextMenu-click') {
-                this.menuClicked(message.info, message.tab);
+        runtime.onMessageExternal.addListener(async (message, sender) => {
+            if (sender.id === TST_ID) {
+                switch (message.type) {
+                case 'fake-contextMenu-click':
+                    this.menuClicked(message.info, message.tab);
+                    break;
+                case 'ready':
+                    this.tstRegistered = await registerTST();
+                    await this.makeMenus();
+                    break;
+                }
             }
         });
     }
