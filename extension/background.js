@@ -75,12 +75,15 @@ class AutoRefresh {
             title: 'Off',
             contexts: ['tab'],
             checked: true,
+            id: 'reload-off'
         });
 
         for (const { duration, label } of DURATIONS) {
-            const id = menus.create({
+            const id = `reload-${duration}`;
+            menus.create({
                 title: label,
                 contexts: ['tab'],
+                id
             });
             this.menuEntries.set(id, { duration, label });
         }
