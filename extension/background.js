@@ -78,12 +78,20 @@ class AutoRefresh {
     async init() {
         await this.restoreTimers();
         this.tstRegistered = await registerTST();
-        this.makeMenus();
+        await this.makeMenus();
         this.listen();
     }
 
-    makeMenus() {
-        menus.create({
+    async makeMenus() {
+        this.menuEntries.clear();
+        menus.removeAll();
+        if (this.tstRegistered) {
+            await runtime.sendMessage(TST_ID, {
+                type: 'fake-contextMenu-remove-all'
+            });
+        }
+
+        await this.addMenu({
             title: 'Off',
             contexts: ['tab'],
             checked: true,
@@ -92,7 +100,7 @@ class AutoRefresh {
 
         for (const { duration, label } of DURATIONS) {
             const id = `reload-${duration}`;
-            menus.create({
+            await this.addMenu({
                 title: label,
                 contexts: ['tab'],
                 id
@@ -141,6 +149,16 @@ class AutoRefresh {
             window.clearInterval(tabEntry.intervalId);
             hidePageAction(id);
             this.deleteTab(id);
+        }
+    }
+
+    async addMenu(params) {
+        menus.create(params);
+        if (this.tstRegistered) {
+            await runtime.sendMessage(TST_ID, {
+                type: 'fake-contextMenu-create',
+                params
+            }).catch(() => {});
         }
     }
 
