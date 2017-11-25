@@ -22,6 +22,7 @@ const hours = n => ({
 });
 
 const DURATIONS = [
+    seconds(3),
     seconds(10),
     seconds(30),
     minutes(1),
