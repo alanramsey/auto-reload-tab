@@ -61,11 +61,18 @@ const hidePageAction = id => {
     pageAction.hide(id);
 };
 
-const registerTST = () =>
-    runtime.sendMessage(TST_ID, {
-        type: 'register-self',
-        name: NAME
-    }).catch(() => false);
+const orTimeout = (ms, promise) => Promise.race([
+    promise,
+    new Promise(resolve => window.setTimeout(resolve, ms))
+]);
+
+const sendTSTMessage = message =>
+    orTimeout(500, runtime.sendMessage(TST_ID, message));
+
+const registerTST = () => sendTSTMessage({
+    type: 'register-self',
+    name: NAME
+}).catch(() => false);
 
 class AutoRefresh {
     constructor() {
@@ -87,7 +94,7 @@ class AutoRefresh {
         this.menuEntries.clear();
         menus.removeAll();
         if (this.tstRegistered) {
-            await runtime.sendMessage(TST_ID, {
+            await sendTSTMessage({
                 type: 'fake-contextMenu-remove-all'
             });
         }
@@ -169,7 +176,7 @@ class AutoRefresh {
     async addMenu(params) {
         menus.create(params);
         if (this.tstRegistered) {
-            await runtime.sendMessage(TST_ID, {
+            await sendTSTMessage({
                 type: 'fake-contextMenu-create',
                 params
             }).catch(() => {});
