@@ -19,5 +19,10 @@
     "menus",
     "activeTab",
     "sessions"
-  ]
+  ],
+  "applications": {
+    "gecko": {
+      "strict_min_version": "57.0"
+    }
+  }
 }
