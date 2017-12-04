@@ -92,7 +92,7 @@ class AutoRefresh {
 
     async makeMenus() {
         this.menuEntries.clear();
-        menus.removeAll();
+        await menus.removeAll();
         if (this.tstRegistered) {
             await sendTSTMessage({
                 type: 'fake-contextMenu-remove-all'
