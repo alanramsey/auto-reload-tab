@@ -85,6 +85,9 @@ class AutoRefresh {
 
     async init() {
         await this.restoreTimers();
+        window.setTimeout(() => {
+            this.restoreTimers();
+        }, 5000);
         this.tstRegistered = await registerTST();
         await this.makeMenus();
         this.listen();
@@ -197,12 +200,18 @@ class AutoRefresh {
         this.registeredTabs.delete(tabId);
     }
 
+    tabIsRegistered(tabId) {
+        return this.registeredTabs.has(tabId);
+    }
+
     async restoreTimers() {
         await Promise.all((await tabs.query({})).map(async tab => {
             const refresh = await sessions.getTabValue(tab.id, 'refresh');
             if (refresh) {
                 const { duration, label } = refresh;
-                this.setRefreshInterval(tab.id, duration, label);
+                if (!this.tabIsRegistered(tab.id)) {
+                    this.setRefreshInterval(tab.id, duration, label);
+                }
             }
         }));
     }
