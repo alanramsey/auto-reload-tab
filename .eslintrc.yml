@@ -22,3 +22,4 @@ rules:
   no-var: error
 parserOptions:
   ecmaVersion: 2017
+  sourceType: module

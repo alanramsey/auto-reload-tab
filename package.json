@@ -8,6 +8,10 @@
   "author": "Alan Ramsey",
   "license": "MIT",
   "scripts": {
+    "build": "webpack",
     "zip": "web-ext build --source-dir extension --overwrite-dest"
+  },
+  "devDependencies": {
+    "webpack": "^3.10.0"
   }
 }
