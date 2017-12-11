@@ -1,0 +1,13 @@
+{
+  "name": "auto-reload-tab",
+  "version": "0.2.2",
+  "main": "extension/background.js",
+  "description": "WebExtension to automatically refresh a tab periodically",
+  "homepage": "https://gitlab.com/alanramsey/auto-reload-tab",
+  "repository": "https://gitlab.com/alanramsey/auto-reload-tab",
+  "author": "Alan Ramsey",
+  "license": "MIT",
+  "scripts": {
+    "zip": "web-ext build --source-dir extension --overwrite-dest"
+  }
+}
