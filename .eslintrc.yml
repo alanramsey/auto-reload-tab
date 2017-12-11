@@ -17,9 +17,16 @@ rules:
     - error
     - always
   no-trailing-spaces: warn
-  no-unused-vars: warn
+  no-unused-vars:
+    - warn
+    - varsIgnorePattern: '^h$'
   prefer-const: warn
   no-var: error
+  react/jsx-uses-vars: error
 parserOptions:
   ecmaVersion: 2017
   sourceType: module
+  ecmaFeatures:
+    jsx: true
+plugins:
+  - react

@@ -14,11 +14,15 @@
     "default_icon": "icon-disabled-48.png",
     "default_title": "Auto Reload Tab (off)"
   },
+  "options_ui": {
+    "page": "options.html"
+  },
   "manifest_version": 2,
   "permissions": [
     "menus",
     "activeTab",
-    "sessions"
+    "sessions",
+    "storage"
   ],
   "applications": {
     "gecko": {
