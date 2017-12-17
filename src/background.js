@@ -59,7 +59,7 @@ const orTimeout = (ms, promise) => Promise.race([
 ]);
 
 const sendTSTMessage = message =>
-    orTimeout(500, runtime.sendMessage(TST_ID, message));
+    orTimeout(100, runtime.sendMessage(TST_ID, message));
 
 const registerTST = () => sendTSTMessage({
     type: 'register-self',
