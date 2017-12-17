@@ -1,38 +1,30 @@
-const { menus, pageAction, runtime, sessions, tabs } = browser;
+import { DURATIONS } from './defaults';
+
+const { menus, pageAction, runtime, sessions, storage, tabs } = browser;
 
 const NAME = 'Auto Reload Tab';
 
 const TST_ID = 'treestyletab@piro.sakura.ne.jp';
 
-const count = (n, str) => n === 1 ? `1 ${str}` : `${n} ${str}s`;
-
-const seconds = n => ({
-    label: count(n, 'second'),
-    duration: n * 1000
-});
-
-const minutes = n => ({
-    label: count(n, 'minute'),
-    duration: n * 1000 * 60
-});
-
-const hours = n => ({
-    label: count(n, 'hour'),
-    duration: n * 1000 * 60 * 60
-});
-
-const DURATIONS = [
-    seconds(3),
-    seconds(10),
-    seconds(30),
-    minutes(1),
-    minutes(3),
-    minutes(5),
-    minutes(10),
-    minutes(15),
-    minutes(20),
-    hours(1),
-];
+const showTime = totalSeconds => {
+    const seconds = totalSeconds % 60;
+    const minutes = Math.floor(totalSeconds % (60 * 60) / 60);
+    const hours = Math.floor(totalSeconds / (60 * 60));
+    let s = '';
+    if (hours > 0) {
+        const plural = hours > 1 && 's' || '';
+        s += `${hours} hour${plural}, `;
+    }
+    if (minutes > 0) {
+        const plural = minutes > 1 && 's' || '';
+        s += `${minutes} minute${plural}, `;
+    }
+    if (seconds > 0) {
+        const plural = seconds > 1 && 's' || '';
+        s += `${seconds} second${plural}`;
+    }
+    return s.replace(/, $/, '');
+};
 
 // Menus cannot be modified on a per-tab basis, so display tab state
 // in a page action.
@@ -74,11 +66,27 @@ const registerTST = () => sendTSTMessage({
     name: NAME
 }).catch(() => false);
 
+const validateDurations = durations =>
+    durations instanceof Array &&
+    durations.length >= 1 &&
+    durations.every(n => typeof n === 'number' && n > 0);
+
+const getStoredDurations = async () => {
+    const {durations} = await storage.local.get({
+        durations: DURATIONS,
+    });
+    if (!validateDurations(durations)) {
+        return DURATIONS;
+    }
+    return durations.filter(n => n > 0);
+};
+
 class AutoRefresh {
     constructor() {
-        // Maps tab ids to { intervalId, duration, label }
+        this.durations = [];
+        // Maps tab ids to { intervalId, duration }
         this.registeredTabs = new Map();
-        // Maps menu entry ids to { duration, label }
+        // Maps menu entry ids to { duration }
         this.menuEntries = new Map();
         this.tstRegistered = false;
     }
@@ -89,6 +97,7 @@ class AutoRefresh {
             this.restoreTimers();
         }, 5000);
         this.tstRegistered = await registerTST();
+        this.durations = await getStoredDurations();
         await this.makeMenus();
         this.listen();
     }
@@ -109,14 +118,14 @@ class AutoRefresh {
             id: 'reload-off'
         });
 
-        for (const { duration, label } of DURATIONS) {
+        for (const duration of this.durations) {
             const id = `reload-${duration}`;
             await this.addMenu({
-                title: label,
+                title: showTime(duration),
                 contexts: ['tab'],
                 id
             });
-            this.menuEntries.set(id, { duration, label });
+            this.menuEntries.set(id, { duration });
         }
     }
 
@@ -138,6 +147,15 @@ class AutoRefresh {
                 }
             }
         });
+        storage.onChanged.addListener((changes, areaName) => {
+            if (areaName === 'local' && changes.hasOwnProperty('durations')) {
+                const durations = changes.durations.newValue;
+                if (validateDurations(durations)) {
+                    this.durations = durations;
+                    this.makeMenus();
+                }
+            }
+        });
     }
 
     menuClicked(info, tab) {
@@ -146,16 +164,17 @@ class AutoRefresh {
         this.unregisterTab(id);
         const entry = this.menuEntries.get(menuItemId);
         if (entry) {
-            const { duration, label } = this.menuEntries.get(menuItemId);
-            this.setRefreshInterval(id, duration, label);
+            const { duration } = this.menuEntries.get(menuItemId);
+            this.setRefreshInterval(id, duration);
         }
     }
 
-    setRefreshInterval(tabId, duration, label) {
+    setRefreshInterval(tabId, duration) {
         const intervalId = window.setInterval(() => {
             tabs.reload(tabId);
-        }, duration);
-        this.setTab(tabId, intervalId, duration, label);
+        }, duration * 1000);
+        this.setTab(tabId, intervalId, duration);
+        const label = showTime(duration);
         showPageAction(tabId, label);
     }
 
@@ -163,7 +182,8 @@ class AutoRefresh {
         // Page actions are reset when the page is navigated
         const tabEntry = this.getTab(id);
         if (tabEntry) {
-            showPageAction(id, tabEntry.label);
+            const label = showTime(tabEntry.duration);
+            showPageAction(id, label);
         }
     }
 
@@ -190,9 +210,9 @@ class AutoRefresh {
         return this.registeredTabs.get(tabId);
     }
 
-    setTab(tabId, intervalId, duration, label) {
-        sessions.setTabValue(tabId, 'refresh', { duration, label });
-        this.registeredTabs.set(tabId, { intervalId, duration, label });
+    setTab(tabId, intervalId, duration) {
+        sessions.setTabValue(tabId, 'refresh', { duration });
+        this.registeredTabs.set(tabId, { intervalId, duration });
     }
 
     deleteTab(tabId) {
@@ -208,9 +228,9 @@ class AutoRefresh {
         await Promise.all((await tabs.query({})).map(async tab => {
             const refresh = await sessions.getTabValue(tab.id, 'refresh');
             if (refresh) {
-                const { duration, label } = refresh;
+                const { duration } = refresh;
                 if (!this.tabIsRegistered(tab.id)) {
-                    this.setRefreshInterval(tab.id, duration, label);
+                    this.setRefreshInterval(tab.id, duration);
                 }
             }
         }));
