@@ -1,6 +1,6 @@
 import { assocPath, append, lensProp, over, remove, sortBy } from 'ramda';
 
-import { saveDurations } from './storage';
+import { defaultDurations, saveDurations } from './storage';
 import { toSeconds } from './util';
 
 const DEFAULT_ENTRY = { value: 1, unit: 'minutes' };
@@ -30,12 +30,17 @@ const save = () => ({ times }) => {
     };
 };
 
+const reset = () => ({
+    times: defaultDurations,
+});
+
 const actions = {
     setValue,
     setUnit,
     addEntry,
     removeEntry,
     save,
+    reset,
 };
 
 export default actions;

@@ -10,3 +10,7 @@
 .entry * {
   margin-right: 1em;
 }
+
+.reset-button {
+  margin: 0 1em;
+}

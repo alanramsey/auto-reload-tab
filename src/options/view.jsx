@@ -50,6 +50,9 @@ const view = state => actions => (
                 <button class="browser-style" onclick={actions.addEntry}>
                     Add
                 </button>
+                <button class="browser-style reset-button" onclick={actions.reset}>
+                    Reset to default
+                </button>
             </div>
             <div>
                 <button
