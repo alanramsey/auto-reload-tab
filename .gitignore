@@ -1,2 +1,6 @@
 /web-ext-artifacts
 /extension/*.js
+/extension/*.css
+/extension/*.html
+/extension/*.map
+/node_modules/
