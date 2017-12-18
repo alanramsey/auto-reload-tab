@@ -5,9 +5,11 @@ import { loadDurations } from './storage';
 import view from './view';
 
 const main = async () => {
+    const times = await loadDurations();
     app({
         state: {
-            times: await loadDurations(),
+            savedTimes: times,
+            times,
         },
         actions,
         view,

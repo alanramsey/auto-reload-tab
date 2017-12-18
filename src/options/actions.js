@@ -25,7 +25,8 @@ const save = () => ({ times }) => {
     const sorted = sortBy(toSeconds, times);
     saveDurations(sorted);
     return {
-        times: sorted
+        savedTimes: sorted,
+        times: sorted,
     };
 };
 

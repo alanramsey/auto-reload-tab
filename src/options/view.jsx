@@ -1,8 +1,11 @@
 import { h } from 'hyperapp';
+import { equals } from 'ramda';
 
 import './style.css';
 
 const UNITS = ['seconds', 'minutes', 'hours'];
+
+const unsaved = ({ savedTimes, times }) => !equals(savedTimes, times);
 
 const capitalize = s => s.slice(0, 1).toUpperCase() + s.slice(1);
 
@@ -50,7 +53,10 @@ const view = state => actions => (
             </div>
             <div>
                 <button
-                    class="browser-style save-button"
+                    class={
+                        'browser-style save-button ' +
+                        (unsaved(state) ? 'default' : 'disabled')
+                    }
                     onclick={actions.save}
                 >
                     Save
