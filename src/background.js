@@ -112,9 +112,14 @@ class AutoRefresh {
         }
 
         await this.addMenu({
+            title: 'Options',
+            contexts: ['tab'],
+            id: 'reload-options',
+        });
+
+        await this.addMenu({
             title: 'Off',
             contexts: ['tab'],
-            checked: true,
             id: 'reload-off'
         });
 
@@ -160,12 +165,16 @@ class AutoRefresh {
 
     menuClicked(info, tab) {
         const { menuItemId } = info;
-        const { id } = tab;
-        this.unregisterTab(id);
-        const entry = this.menuEntries.get(menuItemId);
-        if (entry) {
-            const { duration } = this.menuEntries.get(menuItemId);
-            this.setRefreshInterval(id, duration);
+        if (menuItemId === 'reload-options') {
+            runtime.openOptionsPage();
+        } else {
+            const { id } = tab;
+            this.unregisterTab(id);
+            const entry = this.menuEntries.get(menuItemId);
+            if (entry) {
+                const { duration } = this.menuEntries.get(menuItemId);
+                this.setRefreshInterval(id, duration);
+            }
         }
     }
 
