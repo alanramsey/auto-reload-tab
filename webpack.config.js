@@ -23,6 +23,7 @@ module.exports = {
     entry: {
         background: join(__dirname, 'src/background'),
         options: join(__dirname, 'src/options'),
+        popup: join(__dirname, 'src/popup'),
     },
     output: {
         path: join(__dirname, 'extension'),
@@ -34,6 +35,11 @@ module.exports = {
             filename: 'options.html',
             chunks: ['options'],
             title: 'Options',
+        }),
+        new HtmlWebpackPlugin({
+            filename: 'popup.html',
+            chunks: ['popup'],
+            title: 'Auto Reload Tab',
         }),
         new ExtractTextPlugin('style.css'),
     ],

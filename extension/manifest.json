@@ -12,7 +12,9 @@
   },
   "page_action": {
     "default_icon": "icon-disabled-48.png",
-    "default_title": "Auto Reload Tab (off)"
+    "default_title": "Auto Reload Tab (off)",
+    "default_popup": "popup.html",
+    "browser_style": true
   },
   "options_ui": {
     "page": "options.html",
