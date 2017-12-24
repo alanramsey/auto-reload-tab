@@ -1,4 +1,5 @@
 import { DURATIONS } from './defaults';
+import { showTime } from './utils';
 
 const { menus, pageAction, runtime, sessions, storage, tabs } = browser;
 
@@ -6,33 +7,7 @@ const NAME = 'Auto Reload Tab';
 
 const TST_ID = 'treestyletab@piro.sakura.ne.jp';
 
-const showTime = totalSeconds => {
-    const seconds = totalSeconds % 60;
-    const minutes = Math.floor(totalSeconds % (60 * 60) / 60);
-    const hours = Math.floor(totalSeconds / (60 * 60));
-    let s = '';
-    if (hours > 0) {
-        const plural = hours > 1 && 's' || '';
-        s += `${hours} hour${plural}, `;
-    }
-    if (minutes > 0) {
-        const plural = minutes > 1 && 's' || '';
-        s += `${minutes} minute${plural}, `;
-    }
-    if (seconds > 0) {
-        const plural = seconds > 1 && 's' || '';
-        s += `${seconds} second${plural}`;
-    }
-    return s.replace(/, $/, '');
-};
-
-// Menus cannot be modified on a per-tab basis, so display tab state
-// in a page action.
-const showPageAction = (id, label) => {
-    pageAction.setTitle({
-        tabId: id,
-        title: `Refreshing every ${label} (Click to disable)`
-    });
+const showPageAction = id => {
     pageAction.setIcon({
         path: 'icon-96.png',
         tabId: id
@@ -138,7 +113,6 @@ class AutoRefresh {
         menus.onClicked.addListener(this.menuClicked.bind(this));
         tabs.onRemoved.addListener(this.unregisterTab.bind(this));
         tabs.onUpdated.addListener(this.tabUpdated.bind(this));
-        pageAction.onClicked.addListener(({id}) => this.unregisterTab(id));
         runtime.onMessageExternal.addListener(async (message, sender) => {
             if (sender.id === TST_ID) {
                 switch (message.type) {
@@ -150,6 +124,11 @@ class AutoRefresh {
                     await this.makeMenus();
                     break;
                 }
+            }
+        });
+        runtime.onMessage.addListener(message => {
+            if (message.type === 'set-refresh-interval') {
+                this.setRefreshInterval(message.tabId, message.duration);
             }
         });
         storage.onChanged.addListener((changes, areaName) => {
@@ -169,30 +148,29 @@ class AutoRefresh {
             runtime.openOptionsPage();
         } else {
             const { id } = tab;
-            this.unregisterTab(id);
             const entry = this.menuEntries.get(menuItemId);
-            if (entry) {
-                const { duration } = this.menuEntries.get(menuItemId);
-                this.setRefreshInterval(id, duration);
-            }
+            const duration = entry ? entry.duration : null;
+            this.setRefreshInterval(id, duration);
         }
     }
 
     setRefreshInterval(tabId, duration) {
+        this.unregisterTab(tabId);
+        if (!duration) {
+            return;
+        }
         const intervalId = window.setInterval(() => {
             tabs.reload(tabId);
         }, duration * 1000);
         this.setTab(tabId, intervalId, duration);
-        const label = showTime(duration);
-        showPageAction(tabId, label);
+        showPageAction(tabId);
     }
 
     tabUpdated(id) {
         // Page actions are reset when the page is navigated
         const tabEntry = this.getTab(id);
         if (tabEntry) {
-            const label = showTime(tabEntry.duration);
-            showPageAction(id, label);
+            showPageAction(id);
         }
     }
 
