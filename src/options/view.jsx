@@ -26,6 +26,7 @@ const Time = ({ time, remove, setUnit, setValue }) => (
             type="text"
             value={time.value === 0 ? '' : time.value}
             oninput={e => setValue(e.target.value)}
+            oncreate={e => e.focus()}
         />
         <TimeUnit selected={time.unit} setUnit={setUnit} />
         <button class="browser-style" onclick={remove}>
