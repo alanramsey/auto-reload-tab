@@ -1,0 +1,23 @@
+body {
+  margin: 0.2em 0;
+  line-height: 2rem;
+}
+
+.menu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.menu-entry {
+  display: flex;
+  padding: 0 1rem;
+}
+
+.menu-label {
+  flex-grow: 1;
+}
+
+.menu-radio {
+  vertical-align: text-bottom;
+}

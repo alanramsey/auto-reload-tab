@@ -1,6 +1,8 @@
 import { DURATIONS } from '../defaults';
 import { showTime } from '../utils';
 
+import './style.css';
+
 const { runtime, sessions, storage, tabs } = browser;
 
 const compareNumbers = (x, y) => {
@@ -24,7 +26,9 @@ const handleSelected = (duration, tabId) => {
 
 const menuEntry = ({ duration, active, tabId }) => {
     const li = document.createElement('li');
+    li.className = 'menu-entry';
     const radio = document.createElement('input');
+    radio.className = 'menu-radio';
     radio.type = 'radio';
     radio.checked = active;
     radio.name = 'menu';
@@ -32,6 +36,7 @@ const menuEntry = ({ duration, active, tabId }) => {
     radio.id = entryId;
     radio.addEventListener('click', () => handleSelected(duration, tabId));
     const label = document.createElement('label');
+    label.className = 'menu-label';
     label.htmlFor = entryId;
     label.appendChild(radio);
     const labelText = duration ? showTime(duration) : 'Off';
@@ -50,6 +55,7 @@ const main = async () => {
     }
     durations.sort(compareNumbers);
     const menu = document.createElement('ol');
+    menu.className = 'menu';
     [null, ...durations]
         .map(duration =>
             menuEntry({

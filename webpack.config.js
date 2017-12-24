@@ -41,6 +41,6 @@ module.exports = {
             chunks: ['popup'],
             title: 'Auto Reload Tab',
         }),
-        new ExtractTextPlugin('style.css'),
+        new ExtractTextPlugin('[name].css'),
     ],
 };
