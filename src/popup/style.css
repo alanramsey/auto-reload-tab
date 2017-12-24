@@ -14,6 +14,11 @@ body {
   padding: 0 1rem;
 }
 
+.menu-entry:hover {
+  background-color: Highlight;
+  color: HighlightText;
+}
+
 .menu-label {
   flex-grow: 1;
 }
