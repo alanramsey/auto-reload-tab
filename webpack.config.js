@@ -24,6 +24,7 @@ module.exports = {
         background: join(__dirname, 'src/background'),
         options: join(__dirname, 'src/options'),
         popup: join(__dirname, 'src/popup'),
+        content: join(__dirname, 'src/content'),
     },
     output: {
         path: join(__dirname, 'extension'),

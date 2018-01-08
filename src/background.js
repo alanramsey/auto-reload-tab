@@ -61,6 +61,20 @@ const getDefaultResetOnInteraction = () =>
         defaultResetOnInteraction: null,
     }).then(results => results.defaultResetOnInteraction);
 
+const addInteractionListener = tabId => {
+    tabs.executeScript(tabId, {
+        allFrames: true,
+        file: '/content.js',
+        matchAboutBlank: true,
+    });
+};
+
+const cancelInteractionListener = tabId => {
+    tabs.sendMessage(tabId, {
+        type: 'cancel-interaction-listener',
+    });
+};
+
 class AutoRefresh {
     constructor() {
         this.durations = [];
@@ -171,6 +185,9 @@ class AutoRefresh {
             this.unregisterTab(tabId);
             return;
         }
+        if (!previous && this.defaultResetOnInteraction) {
+            addInteractionListener(tabId);
+        }
         const intervalId = window.setInterval(() => {
             tabs.reload(tabId);
         }, duration * 1000);
@@ -193,6 +210,7 @@ class AutoRefresh {
         const tabEntry = this.getTab(id);
         if (tabEntry) {
             window.clearInterval(tabEntry.intervalId);
+            cancelInteractionListener(id);
             hidePageAction(id);
             this.deleteTab(id);
         }
