@@ -216,7 +216,8 @@ class AutoRefresh {
             const refresh = await sessions.getTabValue(tab.id, 'refresh');
             if (refresh) {
                 const { duration } = refresh;
-                if (!this.tabIsRegistered(tab.id)) {
+                const isValid = typeof duration === 'number' && duration !== 0;
+                if (isValid && !this.tabIsRegistered(tab.id)) {
                     this.setRefreshInterval(tab.id, duration);
                 }
             }
