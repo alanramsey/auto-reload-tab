@@ -113,6 +113,7 @@ class AutoRefresh {
         menus.onClicked.addListener(this.menuClicked.bind(this));
         tabs.onRemoved.addListener(this.unregisterTab.bind(this));
         tabs.onUpdated.addListener(this.tabUpdated.bind(this));
+        tabs.onCreated.addListener(tab => this.restoreTimer(tab.id));
         runtime.onMessageExternal.addListener(async (message, sender) => {
             if (sender.id === TST_ID) {
                 switch (message.type) {
@@ -211,17 +212,19 @@ class AutoRefresh {
         return this.registeredTabs.has(tabId);
     }
 
-    async restoreTimers() {
-        await Promise.all((await tabs.query({})).map(async tab => {
-            const refresh = await sessions.getTabValue(tab.id, 'refresh');
-            if (refresh) {
-                const { duration } = refresh;
-                const isValid = typeof duration === 'number' && duration !== 0;
-                if (isValid && !this.tabIsRegistered(tab.id)) {
-                    this.setRefreshInterval(tab.id, duration);
-                }
+    async restoreTimer(tabId) {
+        const refresh = await sessions.getTabValue(tabId, 'refresh');
+        if (refresh) {
+            const { duration } = refresh;
+            const isValid = typeof duration === 'number' && duration !== 0;
+            if (isValid && !this.tabIsRegistered(tabId)) {
+                this.setRefreshInterval(tabId, duration);
             }
-        }));
+        }
+    }
+
+    async restoreTimers() {
+        await Promise.all((await tabs.query({})).map(tab => this.restoreTimer(tab.id)));
     }
 }
 
