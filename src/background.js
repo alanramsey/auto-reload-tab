@@ -56,10 +56,16 @@ const getStoredDurations = async () => {
     return durations.filter(n => n > 0);
 };
 
+const getDefaultResetOnInteraction = () =>
+    storage.local.get({
+        defaultResetOnInteraction: null,
+    }).then(results => results.defaultResetOnInteraction);
+
 class AutoRefresh {
     constructor() {
         this.durations = [];
-        // Maps tab ids to { intervalId, duration }
+        this.defaultResetOnInteraction = null;
+        // Maps tab ids to { intervalId, duration, resetOnInteraction }
         this.registeredTabs = new Map();
         // Maps menu entry ids to { duration }
         this.menuEntries = new Map();
@@ -67,6 +73,7 @@ class AutoRefresh {
     }
 
     async init() {
+        this.defaultResetOnInteraction = await getDefaultResetOnInteraction();
         await this.restoreTimers();
         window.setTimeout(() => {
             this.restoreTimers();
@@ -163,7 +170,10 @@ class AutoRefresh {
         const intervalId = window.setInterval(() => {
             tabs.reload(tabId);
         }, duration * 1000);
-        this.setTab(tabId, intervalId, duration);
+        this.setTab(tabId, {
+            intervalId,
+            duration
+        });
         showPageAction(tabId);
     }
 
@@ -198,9 +208,12 @@ class AutoRefresh {
         return this.registeredTabs.get(tabId);
     }
 
-    setTab(tabId, intervalId, duration) {
-        sessions.setTabValue(tabId, 'refresh', { duration });
-        this.registeredTabs.set(tabId, { intervalId, duration });
+    setTab(tabId, tabSettings) {
+        const updatedSettings = Object.assign({
+            resetOnInteraction: this.defaultResetOnInteraction,
+        }, this.getTab(tabId), tabSettings);
+        sessions.setTabValue(tabId, 'refresh', updatedSettings);
+        this.registeredTabs.set(tabId, updatedSettings);
     }
 
     deleteTab(tabId) {
