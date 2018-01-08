@@ -163,8 +163,12 @@ class AutoRefresh {
     }
 
     setRefreshInterval(tabId, duration) {
-        this.unregisterTab(tabId);
+        const previous = this.getTab(tabId);
+        if (previous) {
+            window.clearInterval(previous.intervalId);
+        }
         if (!duration) {
+            this.unregisterTab(tabId);
             return;
         }
         const intervalId = window.setInterval(() => {
