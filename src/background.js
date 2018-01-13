@@ -61,6 +61,11 @@ const getDefaultResetOnInteraction = () =>
         defaultResetOnInteraction: null,
     }).then(results => results.defaultResetOnInteraction);
 
+const refreshInterval = (tabId, seconds) =>
+    window.setInterval(() => {
+        tabs.reload(tabId);
+    }, seconds * 1000);
+
 const addInteractionListener = tabId => {
     tabs.executeScript(tabId, {
         allFrames: true,
@@ -148,9 +153,24 @@ class AutoRefresh {
                 }
             }
         });
-        runtime.onMessage.addListener(message => {
-            if (message.type === 'set-refresh-interval') {
+        runtime.onMessage.addListener((message, sender) => {
+            switch (message.type) {
+            case 'set-refresh-interval': // from popup
                 this.setRefreshInterval(message.tabId, message.duration);
+                break;
+            case 'page-interaction': { // from content script
+                const tabId = sender.tab.id;
+                switch (this.getTab(tabId).resetOnInteraction) {
+                case 'reset':
+                    this.resetInterval(tabId);
+                    break;
+                case 'cancel':
+                    this.unregisterTab(tabId);
+                    break;
+                default:
+                }
+                break;
+            }
             }
         });
         storage.onChanged.addListener((changes, areaName) => {
@@ -188,9 +208,7 @@ class AutoRefresh {
         if (!previous && this.defaultResetOnInteraction) {
             addInteractionListener(tabId);
         }
-        const intervalId = window.setInterval(() => {
-            tabs.reload(tabId);
-        }, duration * 1000);
+        const intervalId = refreshInterval(tabId, duration);
         this.setTab(tabId, {
             intervalId,
             duration
@@ -203,6 +221,16 @@ class AutoRefresh {
         const tabEntry = this.getTab(id);
         if (tabEntry) {
             showPageAction(id);
+        }
+    }
+
+    resetInterval(tabId) {
+        const entry = this.getTab(tabId);
+        if (entry) {
+            const { intervalId, duration } = entry;
+            window.clearInterval(intervalId);
+            const newIntervalId = refreshInterval(tabId, duration);
+            this.setTab(tabId, { intervalId: newIntervalId });
         }
     }
 
