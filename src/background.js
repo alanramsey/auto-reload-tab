@@ -7,10 +7,14 @@ const NAME = 'Auto Reload Tab';
 
 const TST_ID = 'treestyletab@piro.sakura.ne.jp';
 
-const showPageAction = id => {
+const showPageAction = (id, duration) => {
     pageAction.setIcon({
         path: 'icon-96.png',
         tabId: id
+    });
+    pageAction.setTitle({
+        tabId: id,
+        title: `${NAME} (${showTime(duration)})`,
     });
     pageAction.show(id);
 };
@@ -244,14 +248,14 @@ class AutoRefresh {
                 ? previous.resetOnInteraction
                 : resetOnInteraction,
         });
-        showPageAction(tabId);
+        showPageAction(tabId, duration);
     }
 
     tabUpdated(id) {
         // Page actions are reset when the page is navigated
         const tabEntry = this.getTab(id);
         if (tabEntry) {
-            showPageAction(id);
+            showPageAction(id, tabEntry.duration);
             if (tabEntry.resetOnInteraction) {
                 addInteractionListener(id);
             }
