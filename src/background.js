@@ -231,7 +231,10 @@ class AutoRefresh {
         const intervalId = refreshInterval(tabId, duration);
         this.setTab(tabId, {
             intervalId,
-            duration
+            duration,
+            resetOnInteraction: previous
+                ? previous.resetOnInteraction
+                : this.defaultResetOnInteraction,
         });
         showPageAction(tabId);
     }
