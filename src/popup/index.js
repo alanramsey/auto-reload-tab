@@ -5,6 +5,12 @@ import './style.css';
 
 const { runtime, sessions, storage, tabs } = browser;
 
+const RESET_DESCRIPTION = `If this is checked, the timer will be reset to zero
+when you click or type anywhere on the page`.replace('\n', ' ');
+
+const CANCEL_DESCRIPTION = `If this is checked, the timer will be turned off
+when you click or type anywhere on the page`.replace('\n', ' ');
+
 const compareNumbers = (x, y) => {
     if (x < y) {
         return -1;
@@ -19,6 +25,15 @@ const handleSelected = (duration, tabId) => {
     runtime.sendMessage({
         type: 'set-refresh-interval',
         duration,
+        tabId,
+    });
+    window.close();
+};
+
+const handleInteractionCheckbox = (resetOnInteraction, tabId) => {
+    runtime.sendMessage({
+        type: 'set-tab-refresh-on-interaction',
+        resetOnInteraction,
         tabId,
     });
     window.close();
@@ -45,9 +60,52 @@ const menuEntry = ({ duration, active, tabId }) => {
     return li;
 };
 
+const checkbox = ({ action, active, description, tabId }) => {
+    const li = document.createElement('li');
+    li.className = 'menu-entry';
+    li.title = description;
+    const checkbox = document.createElement('input');
+    checkbox.id = action;
+    checkbox.type = 'checkbox';
+    checkbox.checked = active;
+    checkbox.addEventListener('click', () => {
+        handleInteractionCheckbox(active ? null : action, tabId);
+    });
+    const label = document.createElement('label');
+    label.htmlFor = action;
+    label.appendChild(checkbox);
+    const labelText =
+        action === 'reset'
+            ? 'Reset on interaction'
+            : 'Disable on interaction';
+    label.appendChild(document.createTextNode(labelText));
+    li.appendChild(label);
+    return li;
+};
+
+const resetOnInteractionCheckbox = (active, tabId) =>
+    checkbox({
+        action: 'reset',
+        active,
+        description: RESET_DESCRIPTION,
+        tabId,
+    });
+
+const cancelOnInteractionCheckbox = (active, tabId) =>
+    checkbox({
+        action: 'cancel',
+        active,
+        description: CANCEL_DESCRIPTION,
+        tabId,
+    });
+
 const main = async () => {
     const [tab] = await tabs.query({ active: true, currentWindow: true });
     const refresh = await sessions.getTabValue(tab.id, 'refresh');
+    const resetOnInteraction = await runtime.sendMessage({
+        type: 'get-tab-reset-on-interaction',
+        tabId: tab.id,
+    });
     const { durations } = await storage.local.get({ durations: DURATIONS });
     const activeDuration = refresh ? refresh.duration : null;
     if (activeDuration && !durations.includes(activeDuration)) {
@@ -65,6 +123,10 @@ const main = async () => {
             })
         )
         .forEach(entry => menu.appendChild(entry));
+    const resetCheckboxActive = resetOnInteraction === 'reset';
+    menu.appendChild(resetOnInteractionCheckbox(resetCheckboxActive, tab.id));
+    const cancelCheckboxActive = resetOnInteraction === 'cancel';
+    menu.appendChild(cancelOnInteractionCheckbox(cancelCheckboxActive, tab.id));
     document.body.appendChild(menu);
 };
 

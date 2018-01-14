@@ -32,3 +32,13 @@ export const loadDurations = async () => {
 export const saveDurations = times => browser.storage.local.set({
     durations: times.map(toSeconds),
 });
+
+export const loadResetOnInteraction = () =>
+    browser.storage.local.get({
+        defaultResetOnInteraction: null,
+    }).then(results => results.defaultResetOnInteraction);
+
+export const saveResetOnInteraction = defaultResetOnInteraction =>
+    browser.storage.local.set({
+        defaultResetOnInteraction,
+    });

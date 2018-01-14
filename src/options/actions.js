@@ -1,6 +1,6 @@
-import { assocPath, append, lensProp, over, remove, sortBy } from 'ramda';
+import { assocPath, append, lensProp, merge, over, remove, sortBy } from 'ramda';
 
-import { defaultDurations, saveDurations } from './storage';
+import { defaultDurations, saveDurations, saveResetOnInteraction } from './storage';
 import { toSeconds } from './util';
 
 const DEFAULT_ENTRY = { value: 1, unit: 'minutes' };
@@ -34,6 +34,13 @@ const reset = () => ({
     times: defaultDurations,
 });
 
+const setResetOnInteraction = defaultResetOnInteraction => state => {
+    saveResetOnInteraction(defaultResetOnInteraction);
+    return merge(state, {
+        defaultResetOnInteraction,
+    });
+};
+
 const actions = {
     setValue,
     setUnit,
@@ -41,6 +48,7 @@ const actions = {
     removeEntry,
     save,
     reset,
+    setResetOnInteraction,
 };
 
 export default actions;

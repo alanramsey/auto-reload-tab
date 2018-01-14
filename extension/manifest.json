@@ -25,7 +25,8 @@
     "menus",
     "activeTab",
     "sessions",
-    "storage"
+    "storage",
+    "<all_urls>"
   ],
   "applications": {
     "gecko": {

@@ -56,10 +56,35 @@ const getStoredDurations = async () => {
     return durations.filter(n => n > 0);
 };
 
+const getDefaultResetOnInteraction = () =>
+    storage.local.get({
+        defaultResetOnInteraction: null,
+    }).then(results => results.defaultResetOnInteraction);
+
+const refreshInterval = (tabId, seconds) =>
+    window.setInterval(() => {
+        tabs.reload(tabId);
+    }, seconds * 1000);
+
+const addInteractionListener = tabId => {
+    tabs.executeScript(tabId, {
+        allFrames: true,
+        file: '/content.js',
+        matchAboutBlank: true,
+    });
+};
+
+const cancelInteractionListener = tabId => {
+    tabs.sendMessage(tabId, {
+        type: 'cancel-interaction-listener',
+    });
+};
+
 class AutoRefresh {
     constructor() {
         this.durations = [];
-        // Maps tab ids to { intervalId, duration }
+        this.defaultResetOnInteraction = null;
+        // Maps tab ids to { intervalId, duration, resetOnInteraction }
         this.registeredTabs = new Map();
         // Maps menu entry ids to { duration }
         this.menuEntries = new Map();
@@ -67,6 +92,7 @@ class AutoRefresh {
     }
 
     async init() {
+        this.defaultResetOnInteraction = await getDefaultResetOnInteraction();
         await this.restoreTimers();
         window.setTimeout(() => {
             this.restoreTimers();
@@ -127,17 +153,57 @@ class AutoRefresh {
                 }
             }
         });
-        runtime.onMessage.addListener(message => {
-            if (message.type === 'set-refresh-interval') {
+        runtime.onMessage.addListener((message, sender, sendResponse) => {
+            switch (message.type) {
+            case 'set-refresh-interval': // from popup
                 this.setRefreshInterval(message.tabId, message.duration);
+                break;
+            case 'get-tab-reset-on-interaction': {
+                const { resetOnInteraction } = this.getTab(message.tabId);
+                sendResponse(resetOnInteraction);
+                break;
+            }
+            case 'set-tab-refresh-on-interaction': {
+                const { resetOnInteraction, tabId } = message;
+                if (resetOnInteraction === null) {
+                    cancelInteractionListener(tabId);
+                } else {
+                    const tab = this.getTab(tabId);
+                    if (tab.resetOnInteraction === null) {
+                        addInteractionListener(tabId);
+                    }
+                }
+                this.setTab(tabId, {
+                    resetOnInteraction
+                });
+                break;
+            }
+            case 'page-interaction': { // from content script
+                const tabId = sender.tab.id;
+                switch (this.getTab(tabId).resetOnInteraction) {
+                case 'reset':
+                    this.resetInterval(tabId);
+                    break;
+                case 'cancel':
+                    this.unregisterTab(tabId);
+                    break;
+                default:
+                }
+                break;
+            }
             }
         });
         storage.onChanged.addListener((changes, areaName) => {
-            if (areaName === 'local' && changes.hasOwnProperty('durations')) {
-                const durations = changes.durations.newValue;
-                if (validateDurations(durations)) {
-                    this.durations = durations;
-                    this.makeMenus();
+            if (areaName === 'local') {
+                if (changes.hasOwnProperty('durations')) {
+                    const durations = changes.durations.newValue;
+                    if (validateDurations(durations)) {
+                        this.durations = durations;
+                        this.makeMenus();
+                    }
+                }
+                if (changes.hasOwnProperty('defaultResetOnInteraction')) {
+                    this.defaultResetOnInteraction = changes.defaultResetOnInteraction.newValue;
                 }
             }
         });
@@ -156,14 +222,25 @@ class AutoRefresh {
     }
 
     setRefreshInterval(tabId, duration) {
-        this.unregisterTab(tabId);
+        const previous = this.getTab(tabId);
+        if (previous) {
+            window.clearInterval(previous.intervalId);
+        }
         if (!duration) {
+            this.unregisterTab(tabId);
             return;
         }
-        const intervalId = window.setInterval(() => {
-            tabs.reload(tabId);
-        }, duration * 1000);
-        this.setTab(tabId, intervalId, duration);
+        if (!previous && this.defaultResetOnInteraction) {
+            addInteractionListener(tabId);
+        }
+        const intervalId = refreshInterval(tabId, duration);
+        this.setTab(tabId, {
+            intervalId,
+            duration,
+            resetOnInteraction: previous
+                ? previous.resetOnInteraction
+                : this.defaultResetOnInteraction,
+        });
         showPageAction(tabId);
     }
 
@@ -172,6 +249,19 @@ class AutoRefresh {
         const tabEntry = this.getTab(id);
         if (tabEntry) {
             showPageAction(id);
+            if (tabEntry.resetOnInteraction) {
+                addInteractionListener(id);
+            }
+        }
+    }
+
+    resetInterval(tabId) {
+        const entry = this.getTab(tabId);
+        if (entry) {
+            const { intervalId, duration } = entry;
+            window.clearInterval(intervalId);
+            const newIntervalId = refreshInterval(tabId, duration);
+            this.setTab(tabId, { intervalId: newIntervalId });
         }
     }
 
@@ -179,6 +269,7 @@ class AutoRefresh {
         const tabEntry = this.getTab(id);
         if (tabEntry) {
             window.clearInterval(tabEntry.intervalId);
+            cancelInteractionListener(id);
             hidePageAction(id);
             this.deleteTab(id);
         }
@@ -198,9 +289,12 @@ class AutoRefresh {
         return this.registeredTabs.get(tabId);
     }
 
-    setTab(tabId, intervalId, duration) {
-        sessions.setTabValue(tabId, 'refresh', { duration });
-        this.registeredTabs.set(tabId, { intervalId, duration });
+    setTab(tabId, tabSettings) {
+        const updatedSettings = Object.assign({
+            resetOnInteraction: this.defaultResetOnInteraction,
+        }, this.getTab(tabId), tabSettings);
+        sessions.setTabValue(tabId, 'refresh', updatedSettings);
+        this.registeredTabs.set(tabId, updatedSettings);
     }
 
     deleteTab(tabId) {
