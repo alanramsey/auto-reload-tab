@@ -43,7 +43,7 @@ const RESET_ON_INTERACTION_RADIOS = [
     ],
     [
         'cancel',
-        'Cancel timer after interacting with page',
+        'Disable timer after interacting with page',
         'If this is selected, the timer will be turned off when you click or type anywhere on the page'
     ],
     [null, 'Neither']
