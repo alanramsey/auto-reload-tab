@@ -153,11 +153,31 @@ class AutoRefresh {
                 }
             }
         });
-        runtime.onMessage.addListener((message, sender) => {
+        runtime.onMessage.addListener((message, sender, sendResponse) => {
             switch (message.type) {
             case 'set-refresh-interval': // from popup
                 this.setRefreshInterval(message.tabId, message.duration);
                 break;
+            case 'get-tab-reset-on-interaction': {
+                const { resetOnInteraction } = this.getTab(message.tabId);
+                sendResponse(resetOnInteraction);
+                break;
+            }
+            case 'set-tab-refresh-on-interaction': {
+                const { resetOnInteraction, tabId } = message;
+                if (resetOnInteraction === null) {
+                    cancelInteractionListener(tabId);
+                } else {
+                    const tab = this.getTab(tabId);
+                    if (tab.resetOnInteraction === null) {
+                        addInteractionListener(tabId);
+                    }
+                }
+                this.setTab(tabId, {
+                    resetOnInteraction
+                });
+                break;
+            }
             case 'page-interaction': { // from content script
                 const tabId = sender.tab.id;
                 switch (this.getTab(tabId).resetOnInteraction) {
