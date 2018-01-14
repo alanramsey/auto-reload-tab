@@ -1,6 +1,6 @@
 {
   "name": "auto-reload-tab",
-  "version": "0.4",
+  "version": "0.4.1",
   "main": "extension/background.js",
   "description": "WebExtension to automatically refresh a tab periodically",
   "homepage": "https://gitlab.com/alanramsey/auto-reload-tab",
