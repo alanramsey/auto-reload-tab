@@ -39,6 +39,16 @@ const handleInteractionCheckbox = (resetOnInteraction, tabId) => {
     window.close();
 };
 
+const optionsLink = () => {
+    const li = document.createElement('li');
+    li.className = 'menu-entry options-link';
+    li.textContent = 'Options';
+    li.addEventListener('click', () => {
+        runtime.openOptionsPage();
+    });
+    return li;
+};
+
 const menuEntry = ({ duration, active, tabId }) => {
     const li = document.createElement('li');
     li.className = 'menu-entry';
@@ -114,6 +124,7 @@ const main = async () => {
     durations.sort(compareNumbers);
     const menu = document.createElement('ol');
     menu.className = 'menu';
+    menu.appendChild(optionsLink());
     [null, ...durations]
         .map(duration =>
             menuEntry({

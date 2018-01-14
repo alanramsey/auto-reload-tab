@@ -26,3 +26,7 @@ body {
 .menu-radio {
   vertical-align: text-bottom;
 }
+
+.options-link {
+  padding-left: calc(1rem + 24px);
+}
