@@ -221,7 +221,10 @@ class AutoRefresh {
         }
     }
 
-    setRefreshInterval(tabId, duration) {
+    setRefreshInterval(tabId, duration, resetOnInteraction) {
+        if (resetOnInteraction === undefined) {
+            resetOnInteraction = this.defaultResetOnInteraction;
+        }
         const previous = this.getTab(tabId);
         if (previous) {
             window.clearInterval(previous.intervalId);
@@ -230,7 +233,7 @@ class AutoRefresh {
             this.unregisterTab(tabId);
             return;
         }
-        if (!previous && this.defaultResetOnInteraction) {
+        if (!previous && resetOnInteraction) {
             addInteractionListener(tabId);
         }
         const intervalId = refreshInterval(tabId, duration);
@@ -239,7 +242,7 @@ class AutoRefresh {
             duration,
             resetOnInteraction: previous
                 ? previous.resetOnInteraction
-                : this.defaultResetOnInteraction,
+                : resetOnInteraction,
         });
         showPageAction(tabId);
     }
@@ -309,10 +312,10 @@ class AutoRefresh {
     async restoreTimer(tabId) {
         const refresh = await sessions.getTabValue(tabId, 'refresh');
         if (refresh) {
-            const { duration } = refresh;
+            const { duration, resetOnInteraction } = refresh;
             const isValid = typeof duration === 'number' && duration !== 0;
             if (isValid && !this.tabIsRegistered(tabId)) {
-                this.setRefreshInterval(tabId, duration);
+                this.setRefreshInterval(tabId, duration, resetOnInteraction);
             }
         }
     }
