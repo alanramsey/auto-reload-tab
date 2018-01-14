@@ -194,11 +194,16 @@ class AutoRefresh {
             }
         });
         storage.onChanged.addListener((changes, areaName) => {
-            if (areaName === 'local' && changes.hasOwnProperty('durations')) {
-                const durations = changes.durations.newValue;
-                if (validateDurations(durations)) {
-                    this.durations = durations;
-                    this.makeMenus();
+            if (areaName === 'local') {
+                if (changes.hasOwnProperty('durations')) {
+                    const durations = changes.durations.newValue;
+                    if (validateDurations(durations)) {
+                        this.durations = durations;
+                        this.makeMenus();
+                    }
+                }
+                if (changes.hasOwnProperty('defaultResetOnInteraction')) {
+                    this.defaultResetOnInteraction = changes.defaultResetOnInteraction.newValue;
                 }
             }
         });
