@@ -35,39 +35,89 @@ const Time = ({ time, remove, setUnit, setValue }) => (
     </div>
 );
 
+const RESET_ON_INTERACTION_RADIOS = [
+    [
+        'reset',
+        'Reset timer after interacting with page',
+        'If this is selected, the timer will be reset to zero when you click or type anywhere on the page'
+    ],
+    [
+        'cancel',
+        'Cancel timer after interacting with page',
+        'If this is selected, the timer will be turned off when you click or type anywhere on the page'
+    ],
+    [null, 'Neither']
+];
+
+const ResetOnInteractionRadio = ({ checked, message, onclick, title }) => (
+    <label class="checkbox" title={title || ''}>
+        <input
+            type="radio"
+            name="reset-on-interaction"
+            checked={checked}
+            onclick={onclick}
+        />
+        {message}
+    </label>
+);
+
 const view = state => actions => (
-    <section>
-        <h1>Intervals</h1>
-        <div class="intervals">
-            {state.times.map((time, index) => (
-                <Time
-                    time={time}
-                    setValue={value => actions.setValue({ value, index })}
-                    setUnit={unit => actions.setUnit({ unit, index })}
-                    remove={() => actions.removeEntry(index)}
-                />
-            ))}
-            <div>
-                <button class="browser-style" onclick={actions.addEntry}>
-                    Add
-                </button>
-                <button class="browser-style reset-button" onclick={actions.reset}>
-                    Reset to default
-                </button>
+    <div>
+        <section>
+            <h1>Intervals</h1>
+            <div class="intervals">
+                {state.times.map((time, index) => (
+                    <Time
+                        time={time}
+                        setValue={value => actions.setValue({ value, index })}
+                        setUnit={unit => actions.setUnit({ unit, index })}
+                        remove={() => actions.removeEntry(index)}
+                    />
+                ))}
+                <div>
+                    <button class="browser-style" onclick={actions.addEntry}>
+                        Add
+                    </button>
+                    <button
+                        class="browser-style reset-button"
+                        onclick={actions.reset}
+                    >
+                        Reset to default
+                    </button>
+                </div>
+                <div>
+                    <button
+                        class={
+                            'browser-style save-button ' +
+                            (unsaved(state) ? 'default' : 'disabled')
+                        }
+                        onclick={actions.save}
+                    >
+                        Save
+                    </button>
+                </div>
             </div>
+        </section>
+        <section>
+            <h1>Other options</h1>
             <div>
-                <button
-                    class={
-                        'browser-style save-button ' +
-                        (unsaved(state) ? 'default' : 'disabled')
-                    }
-                    onclick={actions.save}
-                >
-                    Save
-                </button>
+                {RESET_ON_INTERACTION_RADIOS.map(
+                    ([setting, message, title]) => (
+                        <ResetOnInteractionRadio
+                            checked={
+                                state.defaultResetOnInteraction === setting
+                            }
+                            message={message}
+                            onclick={() =>
+                                actions.setResetOnInteraction(setting)
+                            }
+                            title={title}
+                        />
+                    )
+                )}
             </div>
-        </div>
-    </section>
+        </section>
+    </div>
 );
 
 export default view;

@@ -14,3 +14,7 @@
 .reset-button {
   margin: 0 1em;
 }
+
+.checkbox {
+  display: block;
+}
