@@ -221,6 +221,9 @@ class AutoRefresh {
         const tabEntry = this.getTab(id);
         if (tabEntry) {
             showPageAction(id);
+            if (tabEntry.resetOnInteraction) {
+                addInteractionListener(id);
+            }
         }
     }
 
