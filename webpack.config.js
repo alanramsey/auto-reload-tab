@@ -35,7 +35,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             filename: 'options.html',
             chunks: ['options'],
-            title: 'Options',
+            template: join(__dirname, 'src/options/index.html'),
         }),
         new HtmlWebpackPlugin({
             filename: 'popup.html',
