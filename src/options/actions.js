@@ -41,6 +41,20 @@ const setResetOnInteraction = defaultResetOnInteraction => state => {
     });
 };
 
+const requestAllURLsPermission = () => () => async actions => {
+    const permission = await browser.permissions.request({
+        origins: ['<all_urls>'],
+    });
+    if (permission) {
+        actions.setAllURLsPermission(true);
+    }
+};
+
+const setAllURLsPermission = isGranted => state =>
+    merge(state, {
+        allURLsPermission: isGranted,
+    });
+
 const actions = {
     setValue,
     setUnit,
@@ -49,6 +63,8 @@ const actions = {
     save,
     reset,
     setResetOnInteraction,
+    requestAllURLsPermission,
+    setAllURLsPermission,
 };
 
 export default actions;

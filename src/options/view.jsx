@@ -49,13 +49,20 @@ const RESET_ON_INTERACTION_RADIOS = [
     [null, 'Neither']
 ];
 
-const ResetOnInteractionRadio = ({ checked, message, onclick, title }) => (
+const ResetOnInteractionRadio = ({
+    checked,
+    disabled,
+    message,
+    onclick,
+    title
+}) => (
     <label class="checkbox" title={title || ''}>
         <input
             type="radio"
             name="reset-on-interaction"
             checked={checked}
             onclick={onclick}
+            disabled={disabled}
         />
         {message}
     </label>
@@ -99,23 +106,44 @@ const IntervalsSection = ({ state, actions }) => (
     </section>
 );
 
-const ResetOnInteractionSection = ({ set, value }) => (
+const RequestAllUrlsPermission = ({ requestPermission }) => (
     <div>
+        You must grant a permission to use this.
+        <button class="browser-style" onclick={requestPermission}>
+            Open permission dialog
+        </button>
+    </div>
+);
+
+const ResetOnInteractionSection = ({
+    hasPermission,
+    requestPermission,
+    set,
+    value
+}) => (
+    <section>
+        <h2>Reset timer when interacting with page</h2>
+        {hasPermission || (
+            <RequestAllUrlsPermission requestPermission={requestPermission} />
+        )}
         {RESET_ON_INTERACTION_RADIOS.map(([setting, message, title]) => (
             <ResetOnInteractionRadio
                 checked={value === setting}
                 message={message}
                 onclick={() => set(setting)}
                 title={title}
+                disabled={!hasPermission}
             />
         ))}
-    </div>
+    </section>
 );
 
 const OtherOptionsSection = ({ state, actions }) => (
     <section>
         <h1>Other options</h1>
         <ResetOnInteractionSection
+            hasPermission={state.allURLsPermission}
+            requestPermission={actions.requestAllURLsPermission}
             value={state.defaultResetOnInteraction}
             set={actions.setResetOnInteraction}
         />
