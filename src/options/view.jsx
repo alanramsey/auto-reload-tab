@@ -70,7 +70,7 @@ const ResetOnInteractionRadio = ({
 
 const IntervalsSection = ({ state, actions }) => (
     <section>
-        <h1>Intervals</h1>
+        <h2>Intervals</h2>
         <div class="intervals">
             {state.times.map((time, index) => (
                 <Time
@@ -122,7 +122,7 @@ const ResetOnInteractionSection = ({
     value
 }) => (
     <section>
-        <h2>Reset timer when interacting with page</h2>
+        <h3>Reset timer when interacting with page</h3>
         {hasPermission || (
             <RequestAllUrlsPermission requestPermission={requestPermission} />
         )}
@@ -140,7 +140,7 @@ const ResetOnInteractionSection = ({
 
 const OtherOptionsSection = ({ state, actions }) => (
     <section>
-        <h1>Other options</h1>
+        <h2>Other options</h2>
         <ResetOnInteractionSection
             hasPermission={state.allURLsPermission}
             requestPermission={actions.requestAllURLsPermission}
