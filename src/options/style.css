@@ -22,3 +22,7 @@
 .checkbox {
   display: block;
 }
+
+section {
+  margin-left: 1em;
+}
