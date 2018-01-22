@@ -3,7 +3,7 @@ import { showTime } from '../utils';
 
 import './style.css';
 
-const { runtime, sessions, storage, tabs } = browser;
+const { permissions, runtime, sessions, storage, tabs } = browser;
 
 const RESET_DESCRIPTION = `If this is checked, the timer will be reset to zero
 when you click or type anywhere on the page`.replace('\n', ' ');
@@ -116,6 +116,9 @@ const main = async () => {
         type: 'get-tab-reset-on-interaction',
         tabId: tab.id,
     });
+    const allURLsPermission = await permissions.contains({
+        origins: ['<all_urls>'],
+    });
     const { durations } = await storage.local.get({ durations: DURATIONS });
     const activeDuration = refresh ? refresh.duration : null;
     if (activeDuration && !durations.includes(activeDuration)) {
@@ -134,10 +137,12 @@ const main = async () => {
             })
         )
         .forEach(entry => menu.appendChild(entry));
-    const resetCheckboxActive = resetOnInteraction === 'reset';
-    menu.appendChild(resetOnInteractionCheckbox(resetCheckboxActive, tab.id));
-    const cancelCheckboxActive = resetOnInteraction === 'cancel';
-    menu.appendChild(cancelOnInteractionCheckbox(cancelCheckboxActive, tab.id));
+    if (allURLsPermission) {
+        const resetCheckboxActive = resetOnInteraction === 'reset';
+        menu.appendChild(resetOnInteractionCheckbox(resetCheckboxActive, tab.id));
+        const cancelCheckboxActive = resetOnInteraction === 'cancel';
+        menu.appendChild(cancelOnInteractionCheckbox(cancelCheckboxActive, tab.id));
+    }
     document.body.appendChild(menu);
 };
 
