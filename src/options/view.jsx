@@ -152,6 +152,7 @@ const OtherOptionsSection = ({ state, actions }) => (
 
 const view = state => actions => (
     <div>
+        <h1>Auto Reload Tab options</h1>
         <IntervalsSection state={state} actions={actions} />
         <OtherOptionsSection state={state} actions={actions} />
     </div>
