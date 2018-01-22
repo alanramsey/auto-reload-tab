@@ -61,62 +61,71 @@ const ResetOnInteractionRadio = ({ checked, message, onclick, title }) => (
     </label>
 );
 
+const IntervalsSection = ({ state, actions }) => (
+    <section>
+        <h1>Intervals</h1>
+        <div class="intervals">
+            {state.times.map((time, index) => (
+                <Time
+                    time={time}
+                    setValue={value => actions.setValue({ value, index })}
+                    setUnit={unit => actions.setUnit({ unit, index })}
+                    remove={() => actions.removeEntry(index)}
+                />
+            ))}
+            <div>
+                <button class="browser-style" onclick={actions.addEntry}>
+                    Add
+                </button>
+                <button
+                    class="browser-style reset-button"
+                    onclick={actions.reset}
+                >
+                    Reset to default
+                </button>
+            </div>
+            <div>
+                <button
+                    class={
+                        'browser-style save-button ' +
+                        (unsaved(state) ? 'default' : 'disabled')
+                    }
+                    onclick={actions.save}
+                >
+                    Save
+                </button>
+            </div>
+        </div>
+    </section>
+);
+
+const ResetOnInteractionSection = ({ set, value }) => (
+    <div>
+        {RESET_ON_INTERACTION_RADIOS.map(([setting, message, title]) => (
+            <ResetOnInteractionRadio
+                checked={value === setting}
+                message={message}
+                onclick={() => set(setting)}
+                title={title}
+            />
+        ))}
+    </div>
+);
+
+const OtherOptionsSection = ({ state, actions }) => (
+    <section>
+        <h1>Other options</h1>
+        <ResetOnInteractionSection
+            value={state.defaultResetOnInteraction}
+            set={actions.setResetOnInteraction}
+        />
+    </section>
+);
+
 const view = state => actions => (
     <div>
-        <section>
-            <h1>Intervals</h1>
-            <div class="intervals">
-                {state.times.map((time, index) => (
-                    <Time
-                        time={time}
-                        setValue={value => actions.setValue({ value, index })}
-                        setUnit={unit => actions.setUnit({ unit, index })}
-                        remove={() => actions.removeEntry(index)}
-                    />
-                ))}
-                <div>
-                    <button class="browser-style" onclick={actions.addEntry}>
-                        Add
-                    </button>
-                    <button
-                        class="browser-style reset-button"
-                        onclick={actions.reset}
-                    >
-                        Reset to default
-                    </button>
-                </div>
-                <div>
-                    <button
-                        class={
-                            'browser-style save-button ' +
-                            (unsaved(state) ? 'default' : 'disabled')
-                        }
-                        onclick={actions.save}
-                    >
-                        Save
-                    </button>
-                </div>
-            </div>
-        </section>
-        <section>
-            <h1>Other options</h1>
-            <div>
-                {RESET_ON_INTERACTION_RADIOS.map(
-                    ([setting, message, title]) => (
-                        <ResetOnInteractionRadio
-                            checked={
-                                state.defaultResetOnInteraction === setting
-                            }
-                            message={message}
-                            onclick={() =>
-                                actions.setResetOnInteraction(setting)
-                            }
-                            title={title}
-                        />
-                    )
-                )}
-            </div>
-        </section>
+        <IntervalsSection state={state} actions={actions} />
+        <OtherOptionsSection state={state} actions={actions} />
     </div>
 );
 
