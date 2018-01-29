@@ -1,7 +1,7 @@
 {
   "name": "Auto Reload Tab",
   "description": "Automatically refresh a tab periodically",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "homepage_url": "https://gitlab.com/alanramsey/auto-reload-tab",
   "icons": {
     "48": "icon-48.png",
