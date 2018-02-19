@@ -1,3 +1,5 @@
+import * as Messages from './messages';
+
 const { runtime } = browser;
 
 const EVENT_TYPES = [
@@ -19,7 +21,7 @@ let g_IPCLock = false;
 const listener = () => {
     if (!g_IPCLock) {
         runtime.sendMessage({
-            type: 'page-interaction',
+            type: Messages.PageInteraction,
         });
         g_IPCLock = true;
         window.setTimeout(() => {
@@ -39,7 +41,7 @@ for (const eventType of EVENT_TYPES) {
 }
 
 runtime.onMessage.addListener((message) => {
-    if (message.type === 'cancel-interaction-listener') {
+    if (message.type === Messages.CancelInteractionListener) {
         removeListeners();
     }
 });

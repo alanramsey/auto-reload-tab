@@ -1,4 +1,5 @@
 import { DURATIONS } from '../defaults';
+import * as Messages from '../messages';
 import { showTime } from '../utils';
 
 import './style.css';
@@ -23,7 +24,7 @@ const compareNumbers = (x, y) => {
 
 const handleSelected = (duration, tabId) => {
     runtime.sendMessage({
-        type: 'set-refresh-interval',
+        type: Messages.SetRefreshInterval,
         duration,
         tabId,
     });
@@ -32,7 +33,7 @@ const handleSelected = (duration, tabId) => {
 
 const handleInteractionCheckbox = (resetOnInteraction, tabId) => {
     runtime.sendMessage({
-        type: 'set-tab-refresh-on-interaction',
+        type: Messages.SetTabRefreshOnInteraction,
         resetOnInteraction,
         tabId,
     });
@@ -113,7 +114,7 @@ const main = async () => {
     const [tab] = await tabs.query({ active: true, currentWindow: true });
     const refresh = await sessions.getTabValue(tab.id, 'refresh');
     const resetOnInteraction = await runtime.sendMessage({
-        type: 'get-tab-reset-on-interaction',
+        type: Messages.GetTabResetOnInteraction,
         tabId: tab.id,
     });
     const allURLsPermission = await permissions.contains({

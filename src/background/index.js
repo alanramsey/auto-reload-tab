@@ -1,5 +1,6 @@
 import { getStoredDurations, validateDurations } from './storage/durations';
 import { getDefaultResetOnInteraction } from './storage/interaction';
+import * as Messages from '../messages';
 import { showTime } from '../utils';
 
 const { menus, pageAction, runtime, sessions, storage, tabs } = browser;
@@ -61,7 +62,7 @@ const addInteractionListener = tabId => {
 
 const cancelInteractionListener = tabId => {
     tabs.sendMessage(tabId, {
-        type: 'cancel-interaction-listener',
+        type: Messages.CancelInteractionListener,
     });
 };
 
@@ -140,15 +141,15 @@ class AutoRefresh {
         });
         runtime.onMessage.addListener((message, sender, sendResponse) => {
             switch (message.type) {
-            case 'set-refresh-interval': // from popup
+            case Messages.SetRefreshInterval: // from popup
                 this.setRefreshInterval(message.tabId, message.duration);
                 break;
-            case 'get-tab-reset-on-interaction': {
+            case Messages.GetTabResetOnInteraction: {
                 const { resetOnInteraction } = this.getTab(message.tabId);
                 sendResponse(resetOnInteraction);
                 break;
             }
-            case 'set-tab-refresh-on-interaction': {
+            case Messages.SetTabRefreshOnInteraction: {
                 const { resetOnInteraction, tabId } = message;
                 if (resetOnInteraction === null) {
                     cancelInteractionListener(tabId);
@@ -163,7 +164,7 @@ class AutoRefresh {
                 });
                 break;
             }
-            case 'page-interaction': { // from content script
+            case Messages.PageInteraction: { // from content script
                 const tabId = sender.tab.id;
                 switch (this.getTab(tabId).resetOnInteraction) {
                 case 'reset':
