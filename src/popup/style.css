@@ -27,6 +27,7 @@ body {
   vertical-align: text-bottom;
 }
 
-.options-link {
+.options-link,
+.save-button {
   padding-left: calc(1rem + 24px);
 }

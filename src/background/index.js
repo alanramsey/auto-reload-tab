@@ -1,6 +1,6 @@
 import { getStoredDurations, validateDurations } from './storage/durations';
 import { getDefaultResetOnInteraction } from './storage/interaction';
-import { getSavedTimers } from './storage/timers';
+import { getSavedTimers, addSavedTimer, removeSavedTimer } from './storage/timers';
 import * as Messages from '../messages';
 import { showTime } from '../utils';
 
@@ -167,6 +167,23 @@ class AutoRefresh {
                 });
                 break;
             }
+            case Messages.GetSavedTimerForURL: {
+                const { url } = message;
+                const saved = this.getSavedTimer(url);
+                sendResponse(saved);
+                break;
+            }
+            case Messages.SaveTimer: {
+                const { tabId, url } = message;
+                const { duration, resetOnInteraction } = this.getTab(tabId);
+                this.saveTimer(url, { duration, resetOnInteraction });
+                break;
+            }
+            case Messages.RemoveSavedTimer: {
+                const { url } = message;
+                this.removeSavedTimer(url);
+                break;
+            }
             case Messages.PageInteraction: { // from content script
                 const tabId = sender.tab.id;
                 switch (this.getTab(tabId).resetOnInteraction) {
@@ -306,6 +323,16 @@ class AutoRefresh {
 
     getSavedTimer(url) {
         return this.savedTimers[url];
+    }
+
+    async saveTimer(url, timer) {
+        this.savedTimers[url] = timer;
+        await addSavedTimer(url, timer);
+    }
+
+    async removeSavedTimer(url) {
+        delete this.savedTimers[url];
+        await removeSavedTimer(url);
     }
 
     async restoreTimer(tabId) {

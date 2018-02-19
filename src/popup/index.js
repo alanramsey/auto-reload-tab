@@ -40,6 +40,22 @@ const handleInteractionCheckbox = (resetOnInteraction, tabId) => {
     window.close();
 };
 
+const handleSaveButton = (remove, url, tabId) => {
+    if (remove) {
+        runtime.sendMessage({
+            type: Messages.RemoveSavedTimer,
+            url,
+        });
+    } else {
+        runtime.sendMessage({
+            type: Messages.SaveTimer,
+            tabId,
+            url,
+        });
+    }
+    window.close();
+};
+
 const optionsLink = () => {
     const li = document.createElement('li');
     li.className = 'menu-entry options-link';
@@ -110,12 +126,24 @@ const cancelOnInteractionCheckbox = (active, tabId) =>
         tabId,
     });
 
+const saveButton = (isSaved, url, tabId) => {
+    const button = document.createElement('li');
+    button.className = 'menu-entry save-button';
+    button.textContent = isSaved ? 'Unsave' : 'Save';
+    button.addEventListener('click', () => handleSaveButton(isSaved, url, tabId));
+    return button;
+};
+
 const main = async () => {
     const [tab] = await tabs.query({ active: true, currentWindow: true });
     const refresh = await sessions.getTabValue(tab.id, 'refresh');
     const resetOnInteraction = await runtime.sendMessage({
         type: Messages.GetTabResetOnInteraction,
         tabId: tab.id,
+    });
+    const savedTimer = await runtime.sendMessage({
+        type: Messages.GetSavedTimerForURL,
+        url: tab.url
     });
     const allURLsPermission = await permissions.contains({
         origins: ['<all_urls>'],
@@ -144,6 +172,10 @@ const main = async () => {
         const cancelCheckboxActive = resetOnInteraction === 'cancel';
         menu.appendChild(cancelOnInteractionCheckbox(cancelCheckboxActive, tab.id));
     }
+    const isSaved = savedTimer &&
+        activeDuration === savedTimer.duration &&
+        resetOnInteraction === savedTimer.resetOnInteraction;
+    menu.appendChild(saveButton(isSaved, tab.url, tab.id));
     document.body.appendChild(menu);
 };
 
