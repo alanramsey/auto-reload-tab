@@ -23,6 +23,14 @@
   display: block;
 }
 
+.url-entry {
+  margin-bottom: 1em;
+}
+
+.url-input {
+  width: calc(100% - 1em);
+}
+
 section {
   margin-left: 1em;
 }

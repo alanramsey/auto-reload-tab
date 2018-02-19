@@ -1,3 +1,5 @@
+import { sortBy, merge, prop } from 'ramda';
+
 import { DURATIONS } from '../defaults';
 import { toSeconds } from './util';
 
@@ -42,3 +44,37 @@ export const saveResetOnInteraction = defaultResetOnInteraction =>
     browser.storage.local.set({
         defaultResetOnInteraction,
     });
+
+const urlTimersToArray = timers =>
+    sortBy(
+        prop('url'),
+        Object.entries(timers).map(([url, { duration }]) => ({
+            time: timeWithUnit(duration),
+            url,
+        }))
+    );
+
+const urlTimersFromArray = async array => {
+    const { pageTimers: oldPageTimers } = await browser.storage.local.get({
+        pageTimers: {}
+    });
+    const pageTimers = {};
+    for (const { url, time } of array) {
+        const duration = toSeconds(time);
+        pageTimers[url] = merge(oldPageTimers[url] || {}, { duration });
+    }
+    return pageTimers;
+};
+
+export const loadURLTimers = () =>
+    browser.storage.local.get({
+        pageTimers: {}
+    }).then(results => urlTimersToArray(results.pageTimers));
+
+export const saveURLTimers = timers =>
+    urlTimersFromArray(timers).then(
+        pageTimers =>
+            browser.storage.local.set({
+                pageTimers
+            })
+    );

@@ -1,9 +1,14 @@
-import { assocPath, append, lensProp, merge, over, remove, sortBy } from 'ramda';
+import { assocPath, append, lensProp, merge, over, prop, remove, sortBy } from 'ramda';
 
-import { defaultDurations, saveDurations, saveResetOnInteraction } from './storage';
+import { defaultDurations, saveDurations, saveResetOnInteraction, saveURLTimers } from './storage';
 import { toSeconds } from './util';
 
 const DEFAULT_ENTRY = { value: 1, unit: 'minutes' };
+
+const DEFAULT_SAVED_URL_ENTRY = {
+    url: 'https://example.com',
+    time: DEFAULT_ENTRY,
+};
 
 const setValue = ({ index, value }) => state => {
     const parsed = value === '' ? 0 : parseInt(value);
@@ -55,6 +60,31 @@ const setAllURLsPermission = isGranted => state =>
         allURLsPermission: isGranted,
     });
 
+const setSavedURL = ({ index, url }) => state =>
+    assocPath(['urlTimers', index, 'url'], url, state);
+
+const setSavedURLTime = ({ index, value }) => state =>
+    assocPath(['urlTimers', index, 'time', 'value'], value, state);
+
+const setSavedURLUnit = ({ index, unit }) => state =>
+    assocPath(['urlTimers', index, 'time', 'unit'], unit, state);
+
+const removeSavedURL = index => state =>
+    over(lensProp('urlTimers'), remove(index, 1), state);
+
+const addSavedURL = () => state =>
+    over(lensProp('urlTimers'), append(DEFAULT_SAVED_URL_ENTRY), state);
+
+// FIXME: normalize URLs
+const saveSavedURLList = () => ({ urlTimers }) => {
+    const sorted = sortBy(prop('url'), urlTimers);
+    saveURLTimers(sorted);
+    return {
+        savedURLTimers: sorted,
+        urlTimers: sorted
+    };
+};
+
 const actions = {
     setValue,
     setUnit,
@@ -65,6 +95,12 @@ const actions = {
     setResetOnInteraction,
     requestAllURLsPermission,
     setAllURLsPermission,
+    setSavedURL,
+    setSavedURLTime,
+    setSavedURLUnit,
+    removeSavedURL,
+    addSavedURL,
+    saveSavedURLList,
 };
 
 export default actions;
