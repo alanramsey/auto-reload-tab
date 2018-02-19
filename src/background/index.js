@@ -1,5 +1,6 @@
 import { getStoredDurations, validateDurations } from './storage/durations';
 import { getDefaultResetOnInteraction } from './storage/interaction';
+import { getSavedTimers } from './storage/timers';
 import * as Messages from '../messages';
 import { showTime } from '../utils';
 
@@ -74,11 +75,13 @@ class AutoRefresh {
         this.registeredTabs = new Map();
         // Maps menu entry ids to { duration }
         this.menuEntries = new Map();
+        this.savedTimers = null;
         this.tstRegistered = false;
     }
 
     async init() {
         this.defaultResetOnInteraction = await getDefaultResetOnInteraction();
+        this.savedTimers = await getSavedTimers();
         await this.restoreTimers();
         window.setTimeout(() => {
             this.restoreTimers();
@@ -191,6 +194,9 @@ class AutoRefresh {
                 if (changes.hasOwnProperty('defaultResetOnInteraction')) {
                     this.defaultResetOnInteraction = changes.defaultResetOnInteraction.newValue;
                 }
+                if (changes.hasOwnProperty('pageTimers')) {
+                    this.savedTimers = changes.pageTimers.newValue;
+                }
             }
         });
     }
@@ -241,6 +247,9 @@ class AutoRefresh {
             if (tabEntry.resetOnInteraction) {
                 addInteractionListener(id);
             }
+        } else {
+            // Restore persistent timers
+            this.restoreTimer(id);
         }
     }
 
@@ -295,12 +304,29 @@ class AutoRefresh {
         return this.registeredTabs.has(tabId);
     }
 
+    getSavedTimer(url) {
+        return this.savedTimers[url];
+    }
+
     async restoreTimer(tabId) {
+        if (this.tabIsRegistered(tabId)) {
+            return;
+        }
+        let timer = null;
         const refresh = await sessions.getTabValue(tabId, 'refresh');
         if (refresh) {
-            const { duration, resetOnInteraction } = refresh;
+            timer = refresh;
+        } else {
+            const { url } = await tabs.get(tabId);
+            const saved = this.getSavedTimer(url);
+            if (saved) {
+                timer = saved;
+            }
+        }
+        if (timer) {
+            const { duration, resetOnInteraction } = timer;
             const isValid = typeof duration === 'number' && duration !== 0;
-            if (isValid && !this.tabIsRegistered(tabId)) {
+            if (isValid) {
                 this.setRefreshInterval(tabId, duration, resetOnInteraction);
             }
         }
