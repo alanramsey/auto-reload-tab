@@ -1,5 +1,6 @@
-import { DURATIONS } from './defaults';
-import { showTime } from './utils';
+import { getStoredDurations, validateDurations } from './storage/durations';
+import { getDefaultResetOnInteraction } from './storage/interaction';
+import { showTime } from '../utils';
 
 const { menus, pageAction, runtime, sessions, storage, tabs } = browser;
 
@@ -44,26 +45,6 @@ const registerTST = () => sendTSTMessage({
     type: 'register-self',
     name: NAME
 }).catch(() => false);
-
-const validateDurations = durations =>
-    durations instanceof Array &&
-    durations.length >= 1 &&
-    durations.every(n => typeof n === 'number' && n > 0);
-
-const getStoredDurations = async () => {
-    const {durations} = await storage.local.get({
-        durations: DURATIONS,
-    });
-    if (!validateDurations(durations)) {
-        return DURATIONS;
-    }
-    return durations.filter(n => n > 0);
-};
-
-const getDefaultResetOnInteraction = () =>
-    storage.local.get({
-        defaultResetOnInteraction: null,
-    }).then(results => results.defaultResetOnInteraction);
 
 const refreshInterval = (tabId, seconds) =>
     window.setInterval(() => {
