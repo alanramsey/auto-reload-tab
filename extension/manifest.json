@@ -26,7 +26,8 @@
     "menus",
     "activeTab",
     "sessions",
-    "storage"
+    "storage",
+    "tabs"
   ],
   "optional_permissions": [
     "<all_urls>"
