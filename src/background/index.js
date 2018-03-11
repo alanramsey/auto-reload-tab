@@ -1,3 +1,5 @@
+import normalizeURL from 'normalize-url';
+
 import { getStoredDurations, validateDurations } from './storage/durations';
 import { getDefaultResetOnInteraction } from './storage/interaction';
 import { getSavedTimers, addSavedTimer, removeSavedTimer } from './storage/timers';
@@ -322,17 +324,19 @@ class AutoRefresh {
     }
 
     getSavedTimer(url) {
-        return this.savedTimers[url];
+        return this.savedTimers[normalizeURL(url)];
     }
 
     async saveTimer(url, timer) {
-        this.savedTimers[url] = timer;
-        await addSavedTimer(url, timer);
+        const normalized = normalizeURL(url);
+        this.savedTimers[normalized] = timer;
+        await addSavedTimer(normalized, timer);
     }
 
     async removeSavedTimer(url) {
-        delete this.savedTimers[url];
-        await removeSavedTimer(url);
+        const normalized = normalizeURL(url);
+        delete this.savedTimers[normalized];
+        await removeSavedTimer(normalized);
     }
 
     async restoreTimer(tabId) {

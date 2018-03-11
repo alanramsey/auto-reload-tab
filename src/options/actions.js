@@ -75,7 +75,6 @@ const removeSavedURL = index => state =>
 const addSavedURL = () => state =>
     over(lensProp('urlTimers'), append(DEFAULT_SAVED_URL_ENTRY), state);
 
-// FIXME: normalize URLs
 const saveSavedURLList = () => ({ urlTimers }) => {
     const sorted = sortBy(prop('url'), urlTimers);
     saveURLTimers(sorted);
