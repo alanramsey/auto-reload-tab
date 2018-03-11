@@ -1,5 +1,5 @@
 import normalizeURL from 'normalize-url';
-import { sortBy, merge, prop } from 'ramda';
+import { sortBy, mergeAll, prop } from 'ramda';
 
 import { DURATIONS } from '../defaults';
 import { toSeconds } from './util';
@@ -63,7 +63,11 @@ const urlTimersFromArray = async array => {
     for (const { url, time } of array) {
         const duration = toSeconds(time);
         const normalized = normalizeURL(url);
-        pageTimers[normalized] = merge(oldPageTimers[normalized] || {}, { duration });
+        pageTimers[normalized] = mergeAll([
+            { resetOnInteraction: null },
+            oldPageTimers[normalized] || {},
+            { duration }
+        ]);
     }
     return pageTimers;
 };
