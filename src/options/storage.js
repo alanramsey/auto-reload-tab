@@ -1,8 +1,8 @@
-import normalizeURL from 'normalize-url';
 import { sortBy, mergeAll, prop } from 'ramda';
 
 import { DURATIONS } from '../defaults';
 import { toSeconds } from './util';
+import normalizeURL from '../utils/normalizeURL';
 
 const timeWithUnit = seconds => {
     if (seconds % (60 * 60) === 0) {

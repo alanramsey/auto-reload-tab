@@ -1,10 +1,9 @@
-import normalizeURL from 'normalize-url';
-
 import { getStoredDurations, validateDurations } from './storage/durations';
 import { getDefaultResetOnInteraction } from './storage/interaction';
 import { getSavedTimers, addSavedTimer, removeSavedTimer } from './storage/timers';
 import * as Messages from '../messages';
 import { showTime } from '../utils';
+import normalizeURL from '../utils/normalizeURL';
 
 const { menus, pageAction, runtime, sessions, storage, tabs } = browser;
 
