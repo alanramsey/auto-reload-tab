@@ -51,7 +51,7 @@ const urlTimersToArray = timers =>
         prop('url'),
         Object.entries(timers).map(([url, { duration }]) => ({
             time: timeWithUnit(duration),
-            url,
+            url: decodeURI(url),
         }))
     );
 
