@@ -6,7 +6,7 @@ import ResetOnInteractionSection from './interaction';
 
 import './style.css';
 
-const OtherOptionsSection = ({ state, actions }) => (
+const OtherOptionsSection = () => (state, actions) => (
     <section>
         <h2>Other options</h2>
         <ResetOnInteractionSection
@@ -18,7 +18,7 @@ const OtherOptionsSection = ({ state, actions }) => (
     </section>
 );
 
-const view = state => actions => (
+const view = (state, actions) => (
     <div class="main-view">
         <h1>Auto Reload Tab options</h1>
         <IntervalsSection state={state} actions={actions} />

@@ -25,7 +25,7 @@ const SavedURL = ({ time, url, remove, setTime, setUnit, setURL }) => (
     </div>
 );
 
-const SavedURLsSection = ({ state, actions }) => (
+const SavedURLsSection = () => (state, actions) => (
     <section>
         <h2>Saved timers</h2>
         <div>

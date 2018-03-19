@@ -5,7 +5,7 @@ import Time from './time';
 
 const unsaved = ({ savedTimes, times }) => !equals(savedTimes, times);
 
-const IntervalsSection = ({ state, actions }) => (
+const IntervalsSection = () => (state, actions) => (
     <section>
         <h2>Intervals</h2>
         <div class="intervals">

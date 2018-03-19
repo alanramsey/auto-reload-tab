@@ -14,18 +14,15 @@ const main = async () => {
     const allURLsPermission =
         await browser.permissions.contains({origins: ['<all_urls>']});
     const urlTimers = await loadURLTimers();
-    app({
-        state: {
-            savedTimes: times,
-            times,
-            defaultResetOnInteraction,
-            allURLsPermission,
-            savedURLTimers: urlTimers,
-            urlTimers,
-        },
-        actions,
-        view,
-    });
+    const state = {
+        savedTimes: times,
+        times,
+        defaultResetOnInteraction,
+        allURLsPermission,
+        savedURLTimers: urlTimers,
+        urlTimers,
+    };
+    app(state, actions, view, document.body);
 };
 
 main();
