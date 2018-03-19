@@ -1,25 +1,25 @@
 const { storage } = browser;
 
-export const getSavedTimers = () =>
+export const getPageTimers = () =>
     storage.local.get({
         pageTimers: {}
     }).then(results => results.pageTimers);
 
-export const addSavedTimer = async (url, timer) => {
-    const pageTimers = await getSavedTimers();
+export const addPageTimer = async (url, timer) => {
+    const pageTimers = await getPageTimers();
     pageTimers[url] = timer;
     await storage.local.set({
         pageTimers
     });
 };
 
-export const removeSavedTimer = async url => {
-    const pageTimers = await getSavedTimers();
+export const removePageTimer = async url => {
+    const pageTimers = await getPageTimers();
     delete pageTimers[url];
     await storage.local.set({
         pageTimers
     });
 };
 
-export const saveSavedTimers = pageTimers =>
+export const savePageTimers = pageTimers =>
     storage.local.set({ pageTimers });

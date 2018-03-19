@@ -48,7 +48,7 @@ export const saveResetOnInteraction = defaultResetOnInteraction =>
         defaultResetOnInteraction,
     });
 
-const urlTimersToArray = timers =>
+const pageTimersToArray = timers =>
     sortBy(
         prop('url'),
         Object.entries(timers).map(([url, { duration }]) => ({
@@ -57,7 +57,7 @@ const urlTimersToArray = timers =>
         }))
     );
 
-const urlTimersFromArray = async array => {
+const pageTimersFromArray = async array => {
     const oldPageTimers = await browser.runtime.sendMessage({
         type: Messages.GetPageTimers,
     });
@@ -74,13 +74,13 @@ const urlTimersFromArray = async array => {
     return pageTimers;
 };
 
-export const loadURLTimers = () =>
+export const loadPageTimers = () =>
     browser.runtime.sendMessage({
         type: Messages.GetPageTimers,
-    }).then(urlTimersToArray);
+    }).then(pageTimersToArray);
 
-export const saveURLTimers = timers =>
-    urlTimersFromArray(timers).then(
+export const savePageTimers = timers =>
+    pageTimersFromArray(timers).then(
         pageTimers => browser.runtime.sendMessage({
             type: Messages.SavePageTimers,
             pageTimers,

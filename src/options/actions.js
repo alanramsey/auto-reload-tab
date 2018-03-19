@@ -1,6 +1,6 @@
 import { assocPath, append, lensProp, merge, over, prop, remove, sortBy } from 'ramda';
 
-import { defaultDurations, saveDurations, saveResetOnInteraction, saveURLTimers } from './storage';
+import { defaultDurations, saveDurations, saveResetOnInteraction, savePageTimers } from './storage';
 import { toSeconds } from './util';
 
 const DEFAULT_ENTRY = { value: 1, unit: 'minutes' };
@@ -61,26 +61,26 @@ const setAllURLsPermission = isGranted => state =>
     });
 
 const setSavedURL = ({ index, url }) => state =>
-    assocPath(['urlTimers', index, 'url'], url, state);
+    assocPath(['pageTimers', index, 'url'], url, state);
 
 const setSavedURLTime = ({ index, value }) => state =>
-    assocPath(['urlTimers', index, 'time', 'value'], value, state);
+    assocPath(['pageTimers', index, 'time', 'value'], value, state);
 
 const setSavedURLUnit = ({ index, unit }) => state =>
-    assocPath(['urlTimers', index, 'time', 'unit'], unit, state);
+    assocPath(['pageTimers', index, 'time', 'unit'], unit, state);
 
-const removeSavedURL = index => state =>
-    over(lensProp('urlTimers'), remove(index, 1), state);
+const removePageTimer = index => state =>
+    over(lensProp('pageTimers'), remove(index, 1), state);
 
-const addSavedURL = () => state =>
-    over(lensProp('urlTimers'), append(DEFAULT_SAVED_URL_ENTRY), state);
+const addPageTimer = () => state =>
+    over(lensProp('pageTimers'), append(DEFAULT_SAVED_URL_ENTRY), state);
 
-const saveSavedURLList = () => ({ urlTimers }) => {
-    const sorted = sortBy(prop('url'), urlTimers);
-    saveURLTimers(sorted);
+const savePageTimerList = () => ({ pageTimers }) => {
+    const sorted = sortBy(prop('url'), pageTimers);
+    savePageTimers(sorted);
     return {
-        savedURLTimers: sorted,
-        urlTimers: sorted
+        savedPageTimers: sorted,
+        pageTimers: sorted
     };
 };
 
@@ -97,9 +97,9 @@ const actions = {
     setSavedURL,
     setSavedURLTime,
     setSavedURLUnit,
-    removeSavedURL,
-    addSavedURL,
-    saveSavedURLList,
+    removePageTimer,
+    addPageTimer,
+    savePageTimerList,
 };
 
 export default actions;

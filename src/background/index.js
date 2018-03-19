@@ -1,6 +1,6 @@
 import { getStoredDurations, saveStoredDurations } from './storage/durations';
 import { getDefaultResetOnInteraction, saveDefaultResetOnInteraction } from './storage/interaction';
-import { getSavedTimers, addSavedTimer, removeSavedTimer, saveSavedTimers } from './storage/timers';
+import { getPageTimers, addPageTimer, removePageTimer, savePageTimers } from './storage/timers';
 import * as Messages from '../messages';
 import { showTime } from '../utils';
 import normalizeURL from '../utils/normalizeURL';
@@ -76,13 +76,13 @@ class AutoRefresh {
         this.registeredTabs = new Map();
         // Maps menu entry ids to { duration }
         this.menuEntries = new Map();
-        this.savedTimers = null;
+        this.pageTimers = null;
         this.tstRegistered = false;
     }
 
     async init() {
         this.defaultResetOnInteraction = await getDefaultResetOnInteraction();
-        this.savedTimers = await getSavedTimers();
+        this.pageTimers = await getPageTimers();
         await this.restoreTimers();
         window.setTimeout(() => {
             this.restoreTimers();
@@ -186,7 +186,7 @@ class AutoRefresh {
         }
         case Messages.RemoveSavedTimer: {
             const { url } = message;
-            this.removeSavedTimer(url);
+            this.removePageTimer(url);
             break;
         }
         // From content script
@@ -224,12 +224,12 @@ class AutoRefresh {
             break;
         }
         case Messages.GetPageTimers:
-            sendResponse(this.savedTimers);
+            sendResponse(this.pageTimers);
             break;
         case Messages.SavePageTimers: {
             const { pageTimers } = message;
-            this.savedTimers = pageTimers;
-            saveSavedTimers(pageTimers);
+            this.pageTimers = pageTimers;
+            savePageTimers(pageTimers);
             break;
         }
         }
@@ -339,19 +339,19 @@ class AutoRefresh {
     }
 
     getSavedTimer(url) {
-        return this.savedTimers[normalizeURL(url)];
+        return this.pageTimers[normalizeURL(url)];
     }
 
     async saveTimer(url, timer) {
         const normalized = normalizeURL(url);
-        this.savedTimers[normalized] = timer;
-        await addSavedTimer(normalized, timer);
+        this.pageTimers[normalized] = timer;
+        await addPageTimer(normalized, timer);
     }
 
-    async removeSavedTimer(url) {
+    async removePageTimer(url) {
         const normalized = normalizeURL(url);
-        delete this.savedTimers[normalized];
-        await removeSavedTimer(normalized);
+        delete this.pageTimers[normalized];
+        await removePageTimer(normalized);
     }
 
     async restoreTimer(tabId) {

@@ -3,8 +3,8 @@ import { equals } from 'ramda';
 
 import Time from './time';
 
-const unsaved = ({ savedURLTimers, urlTimers }) =>
-    !equals(urlTimers, savedURLTimers);
+const unsaved = ({ savedPageTimers, pageTimers }) =>
+    !equals(pageTimers, savedPageTimers);
 
 const SavedURL = ({ time, url, remove, setTime, setUnit, setURL }) => (
     <div class="browser-style entry url-entry">
@@ -29,18 +29,18 @@ const SavedURLsSection = () => (state, actions) => (
     <section>
         <h2>Saved timers</h2>
         <div>
-            {state.urlTimers.map(({ time, url }, index) => (
+            {state.pageTimers.map(({ time, url }, index) => (
                 <SavedURL
                     url={url}
                     time={time}
                     setURL={url => actions.setSavedURL({ index, url })}
                     setUnit={unit => actions.setSavedURLUnit({ index, unit })}
                     setTime={value => actions.setSavedURLTime({ index, value })}
-                    remove={() => actions.removeSavedURL(index)}
+                    remove={() => actions.removePageTimer(index)}
                 />
             ))}
         </div>
-        <button class="browser-style" onclick={() => actions.addSavedURL()}>
+        <button class="browser-style" onclick={() => actions.addPageTimer()}>
             Add
         </button>
         <div>
@@ -49,7 +49,7 @@ const SavedURLsSection = () => (state, actions) => (
                     'browser-style save-button ' +
                     (unsaved(state) ? 'default' : 'disabled')
                 }
-                onclick={actions.saveSavedURLList}
+                onclick={actions.savePageTimerList}
             >
                 Save
             </button>

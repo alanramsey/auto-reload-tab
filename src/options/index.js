@@ -4,7 +4,7 @@ import actions from './actions';
 import {
     loadDurations,
     loadResetOnInteraction,
-    loadURLTimers
+    loadPageTimers
 } from './storage';
 import view from './view';
 
@@ -13,14 +13,14 @@ const main = async () => {
     const defaultResetOnInteraction = await loadResetOnInteraction();
     const allURLsPermission =
         await browser.permissions.contains({origins: ['<all_urls>']});
-    const urlTimers = await loadURLTimers();
+    const pageTimers = await loadPageTimers();
     const state = {
         savedTimes: times,
         times,
         defaultResetOnInteraction,
         allURLsPermission,
-        savedURLTimers: urlTimers,
-        urlTimers,
+        savedPageTimers: pageTimers,
+        pageTimers,
     };
     app(state, actions, view, document.body);
 };
