@@ -1,11 +1,11 @@
-import { getStoredDurations, validateDurations } from './storage/durations';
-import { getDefaultResetOnInteraction } from './storage/interaction';
-import { getSavedTimers, addSavedTimer, removeSavedTimer } from './storage/timers';
+import { getStoredDurations, saveStoredDurations } from './storage/durations';
+import { getDefaultResetOnInteraction, saveDefaultResetOnInteraction } from './storage/interaction';
+import { getSavedTimers, addSavedTimer, removeSavedTimer, saveSavedTimers } from './storage/timers';
 import * as Messages from '../messages';
 import { showTime } from '../utils';
 import normalizeURL from '../utils/normalizeURL';
 
-const { menus, pageAction, runtime, sessions, storage, tabs } = browser;
+const { menus, pageAction, runtime, sessions, tabs } = browser;
 
 const NAME = 'Auto Reload Tab';
 
@@ -143,80 +143,96 @@ class AutoRefresh {
                 }
             }
         });
-        runtime.onMessage.addListener((message, sender, sendResponse) => {
-            switch (message.type) {
-            case Messages.SetRefreshInterval: // from popup
-                this.setRefreshInterval(message.tabId, message.duration);
-                break;
-            case Messages.GetTabResetOnInteraction: {
-                const { resetOnInteraction } = this.getTab(message.tabId);
-                sendResponse(resetOnInteraction);
-                break;
-            }
-            case Messages.SetTabRefreshOnInteraction: {
-                const { resetOnInteraction, tabId } = message;
-                if (resetOnInteraction === null) {
-                    cancelInteractionListener(tabId);
-                } else {
-                    const tab = this.getTab(tabId);
-                    if (tab.resetOnInteraction === null) {
-                        addInteractionListener(tabId);
-                    }
-                }
-                this.setTab(tabId, {
-                    resetOnInteraction
-                });
-                break;
-            }
-            case Messages.GetSavedTimerForURL: {
-                const { url } = message;
-                const saved = this.getSavedTimer(url);
-                sendResponse(saved);
-                break;
-            }
-            case Messages.SaveTimer: {
-                const { tabId, url } = message;
-                const { duration, resetOnInteraction } = this.getTab(tabId);
-                this.saveTimer(url, { duration, resetOnInteraction });
-                break;
-            }
-            case Messages.RemoveSavedTimer: {
-                const { url } = message;
-                this.removeSavedTimer(url);
-                break;
-            }
-            case Messages.PageInteraction: { // from content script
-                const tabId = sender.tab.id;
-                switch (this.getTab(tabId).resetOnInteraction) {
-                case 'reset':
-                    this.resetInterval(tabId);
-                    break;
-                case 'cancel':
-                    this.unregisterTab(tabId);
-                    break;
-                default:
-                }
-                break;
-            }
-            }
-        });
-        storage.onChanged.addListener((changes, areaName) => {
-            if (areaName === 'local') {
-                if (changes.hasOwnProperty('durations')) {
-                    const durations = changes.durations.newValue;
-                    if (validateDurations(durations)) {
-                        this.durations = durations;
-                        this.makeMenus();
-                    }
-                }
-                if (changes.hasOwnProperty('defaultResetOnInteraction')) {
-                    this.defaultResetOnInteraction = changes.defaultResetOnInteraction.newValue;
-                }
-                if (changes.hasOwnProperty('pageTimers')) {
-                    this.savedTimers = changes.pageTimers.newValue;
+        runtime.onMessage.addListener(this.onMessage.bind(this));
+    }
+
+    onMessage(message, sender, sendResponse) {
+        switch (message.type) {
+        // From popup
+        case Messages.SetRefreshInterval:
+            this.setRefreshInterval(message.tabId, message.duration);
+            break;
+        case Messages.GetTabResetOnInteraction: {
+            const { resetOnInteraction } = this.getTab(message.tabId);
+            sendResponse(resetOnInteraction);
+            break;
+        }
+        case Messages.SetTabRefreshOnInteraction: {
+            const { resetOnInteraction, tabId } = message;
+            if (resetOnInteraction === null) {
+                cancelInteractionListener(tabId);
+            } else {
+                const tab = this.getTab(tabId);
+                if (tab.resetOnInteraction === null) {
+                    addInteractionListener(tabId);
                 }
             }
-        });
+            this.setTab(tabId, {
+                resetOnInteraction
+            });
+            break;
+        }
+        case Messages.GetSavedTimerForURL: {
+            const { url } = message;
+            const saved = this.getSavedTimer(url);
+            sendResponse(saved);
+            break;
+        }
+        case Messages.SaveTimer: {
+            const { tabId, url } = message;
+            const { duration, resetOnInteraction } = this.getTab(tabId);
+            this.saveTimer(url, { duration, resetOnInteraction });
+            break;
+        }
+        case Messages.RemoveSavedTimer: {
+            const { url } = message;
+            this.removeSavedTimer(url);
+            break;
+        }
+        // From content script
+        case Messages.PageInteraction: {
+            const tabId = sender.tab.id;
+            switch (this.getTab(tabId).resetOnInteraction) {
+            case 'reset':
+                this.resetInterval(tabId);
+                break;
+            case 'cancel':
+                this.unregisterTab(tabId);
+                break;
+            default:
+            }
+            break;
+        }
+        // Storage
+        case Messages.GetDefaultResetOnInteraction:
+            sendResponse(this.defaultResetOnInteraction);
+            break;
+        case Messages.SaveDefaultResetOnInteraction: {
+            const { defaultResetOnInteraction } = message;
+            this.defaultResetOnInteraction = defaultResetOnInteraction;
+            saveDefaultResetOnInteraction(defaultResetOnInteraction);
+            break;
+        }
+        case Messages.GetDurationList:
+            sendResponse(this.durations);
+            break;
+        case Messages.SaveDurationList: {
+            const { durations } = message;
+            this.durations = durations;
+            this.makeMenus();
+            saveStoredDurations(durations);
+            break;
+        }
+        case Messages.GetPageTimers:
+            sendResponse(this.savedTimers);
+            break;
+        case Messages.SavePageTimers: {
+            const { pageTimers } = message;
+            this.savedTimers = pageTimers;
+            saveSavedTimers(pageTimers);
+            break;
+        }
+        }
     }
 
     menuClicked(info, tab) {

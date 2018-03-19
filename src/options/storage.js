@@ -1,6 +1,7 @@
 import { sortBy, mergeAll, prop } from 'ramda';
 
 import { DURATIONS } from '../defaults';
+import * as Messages from '../messages';
 import { toSeconds } from './util';
 import normalizeURL from '../utils/normalizeURL';
 
@@ -25,24 +26,25 @@ const timeWithUnit = seconds => {
 
 export const defaultDurations = DURATIONS.map(timeWithUnit);
 
-export const loadDurations = async () => {
-    const { durations } = await browser.storage.local.get({
-        durations: DURATIONS,
-    });
-    return durations.map(timeWithUnit);
-};
+export const loadDurations = async () =>
+    browser.runtime.sendMessage({
+        type: Messages.GetDurationList,
+    }).then(durations => durations.map(timeWithUnit));
 
-export const saveDurations = times => browser.storage.local.set({
-    durations: times.map(toSeconds),
-});
+export const saveDurations = times =>
+    browser.runtime.sendMessage({
+        type: Messages.SaveDurationList,
+        durations: times.map(toSeconds),
+    });
 
 export const loadResetOnInteraction = () =>
-    browser.storage.local.get({
-        defaultResetOnInteraction: null,
-    }).then(results => results.defaultResetOnInteraction);
+    browser.runtime.sendMessage({
+        type: Messages.GetDefaultResetOnInteraction,
+    });
 
 export const saveResetOnInteraction = defaultResetOnInteraction =>
-    browser.storage.local.set({
+    browser.runtime.sendMessage({
+        type: Messages.SaveDefaultResetOnInteraction,
         defaultResetOnInteraction,
     });
 
@@ -56,8 +58,8 @@ const urlTimersToArray = timers =>
     );
 
 const urlTimersFromArray = async array => {
-    const { pageTimers: oldPageTimers } = await browser.storage.local.get({
-        pageTimers: {}
+    const oldPageTimers = await browser.runtime.sendMessage({
+        type: Messages.GetPageTimers,
     });
     const pageTimers = {};
     for (const { url, time } of array) {
@@ -73,14 +75,14 @@ const urlTimersFromArray = async array => {
 };
 
 export const loadURLTimers = () =>
-    browser.storage.local.get({
-        pageTimers: {}
-    }).then(results => urlTimersToArray(results.pageTimers));
+    browser.runtime.sendMessage({
+        type: Messages.GetPageTimers,
+    }).then(urlTimersToArray);
 
 export const saveURLTimers = timers =>
     urlTimersFromArray(timers).then(
-        pageTimers =>
-            browser.storage.local.set({
-                pageTimers
-            })
+        pageTimers => browser.runtime.sendMessage({
+            type: Messages.SavePageTimers,
+            pageTimers,
+        })
     );

@@ -20,3 +20,6 @@ export const removeSavedTimer = async url => {
         pageTimers
     });
 };
+
+export const saveSavedTimers = pageTimers =>
+    storage.local.set({ pageTimers });

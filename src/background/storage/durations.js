@@ -16,3 +16,6 @@ export const getStoredDurations = async () => {
     }
     return durations.filter(n => n > 0);
 };
+
+export const saveStoredDurations = durations =>
+    storage.local.set({ durations });

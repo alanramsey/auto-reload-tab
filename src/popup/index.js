@@ -1,10 +1,9 @@
-import { DURATIONS } from '../defaults';
 import * as Messages from '../messages';
 import { showTime } from '../utils';
 
 import './style.css';
 
-const { permissions, runtime, sessions, storage, tabs } = browser;
+const { permissions, runtime, sessions, tabs } = browser;
 
 const RESET_DESCRIPTION = `If this is checked, the timer will be reset to zero
 when you click or type anywhere on the page`.replace('\n', ' ');
@@ -148,7 +147,9 @@ const main = async () => {
     const allURLsPermission = await permissions.contains({
         origins: ['<all_urls>'],
     });
-    const { durations } = await storage.local.get({ durations: DURATIONS });
+    const durations = await runtime.sendMessage({
+        type: Messages.GetDurationList,
+    });
     const activeDuration = refresh ? refresh.duration : null;
     if (activeDuration && !durations.includes(activeDuration)) {
         durations.push(activeDuration);
